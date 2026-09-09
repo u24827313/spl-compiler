@@ -3,6 +3,27 @@
 Lexer + parser for the Students' Programming Language (SPL), producing a
 `tree.xml` syntax tree per the practical spec.
 
+## Prerequisites
+
+You need a JDK (21+) and Maven installed. If you've never used Maven before:
+
+**Check if you already have it:**
+```bash
+mvn -version
+java -version
+```
+
+**If Maven isn't installed:**
+- **WSL/Linux:** `sudo apt update && sudo apt install maven`
+- **macOS:** `brew install maven`
+- **Windows (not WSL):** [Download from maven.apache.org](https://maven.apache.org/download.cgi) and add `bin/` to PATH
+
+**IDE setup (recommended over raw CLI if you're new to Maven):**
+- **VS Code:** install the "Extension Pack for Java" — it auto-detects `pom.xml` and handles builds/tests through the UI, no CLI needed
+- **IntelliJ:** File → Open → select the `spl-compiler` folder → it detects `pom.xml` automatically and prompts to import as a Maven project
+
+You don't need to memorize Maven commands — `mvn compile`/`mvn test` above are the only two you'll touch day-to-day, and your IDE likely has buttons for both.
+
 ## Build & run
 
 ```bash
@@ -49,7 +70,6 @@ tests/resources/valid|invalid/     - sample .spl.txt programs for regression tes
 ## Status
 
 - [ ] Lexer (per-category recognizers)
-- [ ] Grammar decision (left-factor vs SLR) documented
 - [ ] Parser
 - [ ] tree.xml writer
 - [ ] Error messages with hints
