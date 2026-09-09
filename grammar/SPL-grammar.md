@@ -29,10 +29,7 @@ vs `do`), and `BOOL`'s six alternatives are all distinct keywords.
 
 ## Decision
 
-- [ ] Left-factor `TERM` and `INSTR` and hand-write LL(1) recursive descent, OR
-- [ ] Build SLR/LALR(1) tables on the grammar as-is
-
-**Status:** TODO — decide as a group and check this box + fill in below.
+- Left-factor `TERM` and `INSTR` and hand-write LL(1) recursive descent, OR
 
 ### If left-factoring (Option A)
 
@@ -49,11 +46,6 @@ Verified: FOLLOW(TERM) does not contain `(`, so `TERM' → ε` vs
 `TERM' → ( INPUT )` do not collide. Tag the `( INPUT )` branches as CALL
 nodes when building the tree, since `CALL` is no longer a separate
 production.
-
-### If SLR/LALR (Option B)
-
-Grammar stays as-is; build canonical LR(0)/SLR item sets. Document the
-states + ACTION/GOTO table here (or link to a generated file) once built.
 
 ## Lexer notes
 
