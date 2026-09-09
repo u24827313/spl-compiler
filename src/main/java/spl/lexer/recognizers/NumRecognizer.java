@@ -4,7 +4,7 @@ import spl.lexer.Token;
 import spl.lexer.TokenType;
 
 /**
- * Owner: TODO(assign teammate)
+ * Owner: Blessing Gibendi
  *
  * Regex from spec:
  *   0_ |

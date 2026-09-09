@@ -1,9 +1,11 @@
 package spl.lexer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
-import spl.lexer.recognizers.NumRecognizer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import spl.lexer.recognizers.NumRecognizer;
 
 class NumRecognizerTest {
 
@@ -19,6 +21,14 @@ class NumRecognizerTest {
     }
 
     @Test
+    void matchesPositiveInteger() {
+        Token t = recognizer.tryMatch("42 ", 0, 1, 1);
+        assertNotNull(t);
+        assertEquals(TokenType.NUM, t.type());
+        assertEquals("42", t.lexeme());
+    }
+
+    @Test
     void matchesNegativeDecimal() {
         Token t = recognizer.tryMatch("-3.14 ", 0, 1, 1);
         assertNotNull(t);
@@ -26,9 +36,29 @@ class NumRecognizerTest {
     }
 
     @Test
+    void matchesZeroDecimalWithNonZeroEndingDigit() {
+        Token t = recognizer.tryMatch("0.5 ", 0, 1, 1);
+        assertNotNull(t);
+        assertEquals("0.5", t.lexeme());
+    }
+
+    @Test
     void rejectsLeadingZeroInteger() {
         // "01 " should NOT match any NUM alternative (no leading-zero integers except "0" itself)
         Token t = recognizer.tryMatch("01 ", 0, 1, 1);
+        assertNull(t);
+    }
+
+    @Test
+    void rejectsTrailingZeroDecimal() {
+        // "0.50 " should NOT match because the fractional part must end in a non-zero digit
+        Token t = recognizer.tryMatch("0.50 ", 0, 1, 1);
+        assertNull(t);
+    }
+
+    @Test
+    void rejectsNegativeZeroInteger() {
+        Token t = recognizer.tryMatch("-0 ", 0, 1, 1);
         assertNull(t);
     }
 }
