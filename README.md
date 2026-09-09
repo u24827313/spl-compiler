@@ -22,8 +22,6 @@ java -version
 - **VS Code:** install the "Extension Pack for Java" — it auto-detects `pom.xml` and handles builds/tests through the UI, no CLI needed
 - **IntelliJ:** File → Open → select the `spl-compiler` folder → it detects `pom.xml` automatically and prompts to import as a Maven project
 
-You don't need to memorize Maven commands — `mvn compile`/`mvn test` above are the only two you'll touch day-to-day, and your IDE likely has buttons for both.
-
 ## Build & run
 
 ```bash
