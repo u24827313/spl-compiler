@@ -1,5 +1,9 @@
 package spl.tree;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -7,11 +11,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Owner: TODO(assign teammate)
@@ -38,26 +40,26 @@ public class XmlTreeWriter {
 
         for (Node n : allNodes) {
             Element nodeEl = doc.createElement("node");
-            nodeEl.setAttribute("id", String.valueOf(n.id));
+            nodeEl.setAttribute("id", String.valueOf(n.getId()));
 
             Element contentsEl = doc.createElement("contents");
-            contentsEl.setTextContent(n.contents);
+            contentsEl.setTextContent(n.getContents());
             nodeEl.appendChild(contentsEl);
 
             if (!n.isLeaf()) {
                 Element childrenEl = doc.createElement("children");
                 StringBuilder ids = new StringBuilder();
-                for (Node c : n.children) {
+                for (Node c : n.getChildren()) {
                     if (ids.length() > 0) ids.append(",");
-                    ids.append(c.id);
+                    ids.append(c.getId());
                 }
                 childrenEl.setTextContent(ids.toString());
                 nodeEl.appendChild(childrenEl);
             }
 
-            if (n.parent != null) {
+            if (n.getParent() != null) {
                 Element parentEl = doc.createElement("parent");
-                parentEl.setTextContent(String.valueOf(n.parent.id));
+                parentEl.setTextContent(String.valueOf(n.getParent().getId()));
                 nodeEl.appendChild(parentEl);
             }
 
@@ -71,6 +73,6 @@ public class XmlTreeWriter {
 
     private void collect(Node n, List<Node> out) {
         out.add(n);
-        for (Node c : n.children) collect(c, out);
+        for (Node c : n.getChildren()) collect(c, out);
     }
 }
