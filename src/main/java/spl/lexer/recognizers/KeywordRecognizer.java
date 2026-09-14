@@ -1,12 +1,11 @@
 package spl.lexer.recognizers;
 
+import java.util.Map;
+
 import spl.lexer.Token;
 import spl.lexer.TokenType;
 
-import java.util.Map;
-
 /**
- * Owner: TODO(assign teammate)
  *
  * Recognizes reserved keywords (void, num, return, print, nop, comment, mod,
  * add, sub, mul, div, neg, if, then, else, not, and, or, eq, larger, lesser,
@@ -45,9 +44,63 @@ public class KeywordRecognizer implements TokenRecognizer {
             Map.entry("until", TokenType.UNTIL)
     );
 
+    private static final Map<Character, TokenType> PUNCTUATION = Map.ofEntries(
+            Map.entry('$', TokenType.EOF),
+            Map.entry(':', TokenType.COLON),
+            Map.entry(';', TokenType.SEMICOLON),
+            Map.entry('(', TokenType.LPAREN),
+            Map.entry(')', TokenType.RPAREN),
+            Map.entry('{', TokenType.LBRACE),
+            Map.entry('}', TokenType.RBRACE),
+            Map.entry('=', TokenType.EQUALS)
+    );
+
     @Override
     public Token tryMatch(String source, int pos, int line, int column) {
-        // TODO: match a keyword or a punctuation symbol, requiring a trailing blank_space.
-        return null;
+        if(pos >= source.length()){
+            return null;
+        }
+
+        char first = source.charAt(pos);
+
+        if(PUNCTUATION.containsKey(first)){
+            int next = pos + 1;
+            if(!isBlankSpace(source, next)){
+                return null;
+            }
+
+            return new Token(PUNCTUATION.get(first), String.valueOf(first), line, column);
+        }
+
+        if(!Character.isLetter(first)){
+            return null;
+        }
+
+        int end = pos;
+
+        while(end < source.length() && Character.isLetter(source.charAt(end))){
+            end++;
+        }
+
+        String candidate = source.substring(pos, end);
+        TokenType type = KEYWORDS.get(candidate);
+        if(type == null){
+            return null;
+        }
+
+        if(!isBlankSpace(source, end)){
+            return null;
+        }
+
+
+        return new Token(type, candidate, line, column);
+    }
+
+    private boolean isBlankSpace(String source, int i) {
+        if (i >= source.length()) {
+            return false;
+        }
+        char c = source.charAt(i);
+        return c == 32 || c == 13;
     }
 }
