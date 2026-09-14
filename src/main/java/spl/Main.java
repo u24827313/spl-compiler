@@ -1,15 +1,15 @@
 package spl;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.List;
+
 import spl.lexer.Lexer;
 import spl.lexer.Token;
 import spl.parser.ParseException;
 import spl.parser.Parser;
-import spl.tree.Node;
+import spl.tree.SyntaxTree;
 import spl.tree.XmlTreeWriter;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.List;
 
 /**
  * Usage: java -jar spl-compiler.jar <path-to-SPL.txt>
@@ -27,9 +27,9 @@ public class Main {
             String source = Files.readString(new File(args[0]).toPath());
 
             List<Token> tokens = new Lexer().tokenize(source);
-            Node root = new Parser(tokens).parse();
+            SyntaxTree tree = new Parser().parse(tokens); // matches Parser.java's parse(List<Token>)
 
-            new XmlTreeWriter().write(root, new File("tree.xml"));
+            new XmlTreeWriter().write(tree.getRoot(), new File("tree.xml"));
             System.out.println("OK: tree.xml written.");
 
         } catch (ParseException e) {
