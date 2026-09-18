@@ -16,6 +16,7 @@ public class ProgramParser {
         node.addChild(parseVDecl(ctx));
         node.addChild(ctx.expectLeaf(TokenType.COLON, "after variable declarations"));
         node.addChild(parseFDecl(ctx));
+        node.addChild(ctx.expectLeaf(TokenType.COLON, "after function declarations"));
         node.addChild(parseAlgo(ctx));
         return node;
     }
