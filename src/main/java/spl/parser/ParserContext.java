@@ -3,6 +3,7 @@ package spl.parser;
 import java.util.List;
 
 import spl.lexer.Token;
+import spl.lexer.TokenType;
 import spl.tree.Node;
 import spl.util.IdGenerator;
 
@@ -30,5 +31,17 @@ public class ParserContext {
 
     public Node newNode(String contents) {
         return new Node(idGen.next(), contents);
+    }
+
+    public Node leaf(Token token) {
+        return newNode(token.lexeme());
+    }
+
+    public Node expectLeaf(TokenType type, String context) {
+        return leaf(expect(type, context));
+    }
+
+    public Node advanceLeaf() {
+        return leaf(advance());
     }
 }
