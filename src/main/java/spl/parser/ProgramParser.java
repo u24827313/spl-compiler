@@ -10,4 +10,10 @@ public class ProgramParser {
     public static Node parseOutp(ParserContext ctx) {
         return null;
     }
+
+    public static Node parseAlgo(ParserContext ctx) {
+        throw new UnsupportedOperationException(
+                "ProgramParser.parseAlgo(ParserContext) has not been implemented yet"
+        );
+    }
 }
