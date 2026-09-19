@@ -8,16 +8,16 @@ import java.util.List;
 
 public class ExprParser {
 
-    private static List<TokenType> binaryTermOps = List.of(
+    private static final List<TokenType> BINARY_TERM_OPS = List.of(
         TokenType.MOD, TokenType.ADD, TokenType.SUB,
-        TokenType.MUL, TokenType.DIV, TokenType.NEG
+        TokenType.MUL, TokenType.DIV
     );
 
-    private static List<TokenType> COND_TOKENS = List.of(TokenType.WHILE, TokenType.UNTIL);
+    private static final List<TokenType> COND_TOKENS = List.of(TokenType.WHILE, TokenType.UNTIL);
 
-    private static List<TokenType> BINARY_BOOL_OPS = List.of(TokenType.AND, TokenType.OR);
+    private static final List<TokenType> BINARY_BOOL_OPS = List.of(TokenType.AND, TokenType.OR);
     
-    private static List<TokenType> BINARY_COMP_OPS = List.of(TokenType.EQ, TokenType.LARGER, TokenType.LESSER);
+    private static final List<TokenType> BINARY_COMP_OPS = List.of(TokenType.EQ, TokenType.LARGER, TokenType.LESSER);
 
 
     public static Node parseTerm(ParserContext ctx) {
@@ -41,14 +41,14 @@ public class ExprParser {
             return parseNum(ctx);
         }
 
-        for (TokenType op : binaryTermOps) {
+        if (ctx.check(TokenType.NEG)) {
+            return parseNeg(ctx);
+        }
+
+        for (TokenType op : BINARY_TERM_OPS) {
             if (ctx.check(op)) {
                 return parseBinaryOp(ctx);
             }
-        }
-
-        if (ctx.check(TokenType.NEG)) {
-            return parseNeg(ctx);
         }
 
         throw unexpected(ctx, "a term");
