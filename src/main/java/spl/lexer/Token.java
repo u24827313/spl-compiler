@@ -9,4 +9,8 @@ public record Token(TokenType type, String lexeme, int line, int column) {
     public String toString() {
         return type + "('" + lexeme + "')";
     }
+
+    public TokenType getType(){
+        return type;
+    }
 }
