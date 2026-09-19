@@ -16,6 +16,25 @@ public class ParserContext {
     }
 
     public Token peek() { return tokens.get(pos); }
+
+
+    public Token peek(int offset) {
+        
+        if (offset < 0) {
+            throw new IllegalArgumentException("Lookahead offset cannot be negative: " + offset);
+        }
+
+        int index = pos + offset;
+
+        
+        if (index >= tokens.size()) {
+            throw new ParseException("Unexpected end of token stream while looking ahead by "
+                    + offset + " token(s)");
+        }
+
+        return tokens.get(index);
+    }
+
     public Token advance() { return tokens.get(pos++); }
     public boolean check(spl.lexer.TokenType type) { return peek().type() == type; }
 
