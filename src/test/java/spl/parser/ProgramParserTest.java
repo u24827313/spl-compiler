@@ -110,12 +110,22 @@ public class ProgramParserTest {
     }
 
     @Test
-    void parseAlgo_callsIntoStubAndFailsAsExpected(){
-        List<Token> tokens = List.of(tok(TokenType.PRINT, "print"));
+    void parseAlgo_matchesPrintInstruction() {
+        // print "hi" ; <stop>
+        List<Token> tokens = List.of(
+                tok(TokenType.PRINT, "print"),
+                tok(TokenType.STRING, "\"hi\""),
+                tok(TokenType.SEMICOLON, ";"),
+                tok(TokenType.COLON, ":") // lookahead that ends the recursive ALGO via epsilon
+        );
         ParserContext ctx = ctxFrom(tokens);
 
-        assertThrows(UnsupportedOperationException.class,
-                () -> ProgramParser.parseAlgo(ctx));
+        Node node = ProgramParser.parseAlgo(ctx);
+
+        // ALGO -> INSTR ; ALGO(epsilon)  =>  3 children
+        assertEquals(3, node.getChildren().size());
+        // confirm the ';' was actually consumed and we stopped right before ':'
+        assertEquals(TokenType.COLON, ctx.peek().getType());
     }
 
 
@@ -131,8 +141,7 @@ public class ProgramParserTest {
     }
 
     @Test
-    void parseOutp_parenTerm_callsIntoStubAndFailsAsExpected() {
-        // OUTP -> ( TERM ) needs ExprParser.parseTerm, still a stub
+    void parseOutp_parenTerm_matchesRealTerm() {
         List<Token> tokens = List.of(
                 tok(TokenType.LPAREN, "("),
                 tok(TokenType.NUM, "5_"),
@@ -140,8 +149,12 @@ public class ProgramParserTest {
         );
         ParserContext ctx = ctxFrom(tokens);
 
-        assertThrows(UnsupportedOperationException.class,
-                () -> ProgramParser.parseOutp(ctx));
+        Node node = ProgramParser.parseOutp(ctx);
+
+        // OUTP -> ( TERM )  =>  3 children: '(', TERM subtree, ')'
+        assertEquals(3, node.getChildren().size());
+        assertEquals("(", node.getChildren().get(0).getContents());
+        assertEquals(")", node.getChildren().get(2).getContents());
     }
 
     @Test

@@ -65,7 +65,7 @@ public class KeywordRecognizer implements TokenRecognizer {
 
         if(PUNCTUATION.containsKey(first)){
             int next = pos + 1;
-            if(!isBlankSpace(source, next)){
+            if(next < source.length() && !isBlankSpace(source, next)){
                 return null;
             }
 

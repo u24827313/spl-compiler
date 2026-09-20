@@ -42,10 +42,14 @@ public class Lexer
             {
 
                 // If whitespace represents a new line
-                if (current == '\n' || current == '\r') 
-                {
+                if (current == '\r' || current == '\n') {
                     line++;
                     column = 1;
+                    pos++;
+                    if (current == '\r' && pos < source.length() && source.charAt(pos) == '\n') {
+                        pos++; // consume the \n that follows \r as part of the same newline
+                    }
+                    continue;
                 }
                 else
                 {
