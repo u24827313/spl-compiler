@@ -8,17 +8,20 @@ Lexer + parser for the Students' Programming Language (SPL), producing a
 You need a JDK (21+) and Maven installed. If you've never used Maven before:
 
 **Check if you already have it:**
+
 ```bash
 mvn -version
 java -version
 ```
 
 **If Maven isn't installed:**
+
 - **WSL/Linux:** `sudo apt update && sudo apt install maven`
 - **macOS:** `brew install maven`
 - **Windows (not WSL):** [Download from maven.apache.org](https://maven.apache.org/download.cgi) and add `bin/` to PATH
 
 **IDE setup (recommended over raw CLI if you're new to Maven):**
+
 - **VS Code:** install the "Extension Pack for Java" — it auto-detects `pom.xml` and handles builds/tests through the UI, no CLI needed
 - **IntelliJ:** File → Open → select the `spl-compiler` folder → it detects `pom.xml` automatically and prompts to import as a Maven project
 
@@ -28,7 +31,7 @@ java -version
 mvn compile              # compile only
 mvn test                 # run unit tests
 mvn package               # build spl-compiler.jar with dependencies
-java -jar target/spl-compiler.jar path/to/SPL.txt
+mvn exec:java -Dexec.mainClass=spl.Main -Dexec.args="src/SPL.txt"
 ```
 
 ## Project layout
