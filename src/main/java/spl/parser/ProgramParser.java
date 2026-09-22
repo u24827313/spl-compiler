@@ -47,7 +47,6 @@ public class ProgramParser {
             node.addChild(ctx.advanceLeaf());
             node.addChild(ctx.expectLeaf(TokenType.USER_DEFINED_NAME, "Before parameter list"));
             node.addChild(ctx.expectLeaf(TokenType.LPAREN, "before paramater list"));
-            node.addChild(ctx.expectLeaf(TokenType.LPAREN, "before parameter list"));
             node.addChild(parseVDecl(ctx));
             node.addChild(ctx.expectLeaf(TokenType.RPAREN, "after parameter list"));
             node.addChild(ctx.expectLeaf(TokenType.LBRACE, "before function body"));

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import spl.tree.Node;
 
-import spl.parser.ParseException;
 import java.util.List;
 
 public class ProgramParserTest {
