@@ -7,4 +7,17 @@ public class SymbolEntry {
     int level; 
     int declNodeId; 
     String uniqueName;
+
+    SymbolEntry(String originalName, Kind kind, int level, int declNodeId, String uniqueName) {
+        this.originalName = originalName;
+        this.kind = kind;
+        this.level = level;
+        this.declNodeId = declNodeId;
+        this.uniqueName = uniqueName;
+    }
+
+    @Override
+    public String toString() {
+        return uniqueName + " <- " + originalName + " (" + kind + ", level " + level + ", node " + declNodeId + ")";
+    }
 }
