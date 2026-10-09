@@ -77,9 +77,9 @@ public class StringRecognizer implements TokenRecognizer
                 || c == '!';
     }
 
-    // Allows ASCII values: 32, 13 and 19 to indiciate a valid blank space
+    // Allows ASCII values: 32 and 13
     private boolean isBlankSpace(char c) 
     {
-        return c == ' ' || c == '\r' || c == '\n';
+        return c == 32 || c == 13;
     }
 }

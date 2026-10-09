@@ -1,8 +1,24 @@
 package spl.semantic;
 
 public class NameGenerator { 
-    // VAR/PARAM -> "v1", "v2", ...; FUNC -> "f1", "f2", ... (one counter per prefix; prefixes are constants)
+    private static final String VARIABLE_PREFIX = "v";
+    private static final String FUNCTION_PREFIX = "f";
+
+    private int variableCounter = 0;
+    private int functionCounter = 0;
+
     String next(SymbolEntry.Kind kind){
-        return ""; //stub for now
+
+        switch(kind) {
+            case VAR:
+            case PARAM:
+                return VARIABLE_PREFIX + (++variableCounter);
+            case FUNC:
+                return FUNCTION_PREFIX + (++functionCounter);
+            default:
+                throw new IllegalArgumentException(
+                    "Unsupported symbol kind: " + kind
+                );
+        }
     }
 }
