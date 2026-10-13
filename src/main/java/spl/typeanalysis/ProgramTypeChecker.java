@@ -54,10 +54,89 @@ public class ProgramTypeChecker {
         }
     }
 
-    private Type checkSplProg(Node n) { throw new UnsupportedOperationException("TODO"); }
-    private Type checkP(Node n)       { throw new UnsupportedOperationException("TODO"); }
-    private Type checkVDecl(Node n)   { throw new UnsupportedOperationException("TODO"); }
-    private Type checkFDecl(Node n)   { throw new UnsupportedOperationException("TODO"); }
-    private Type checkFType(Node n)   { throw new UnsupportedOperationException("TODO"); }
-    private Type checkAlgo(Node n)    { throw new UnsupportedOperationException("TODO"); }
+    private Type checkSplProg(Node n) { 
+        checkOk(child(n, 0, 2), "SPL_PROG");
+        return Type.OK;
+    }
+    private Type checkP(Node n)       { 
+        checkOk(child(n, 0, 5), "P");
+        checkOk(child(n, 2, 5), "P");
+        checkOk(child(n, 4, 5), "P");
+        return Type.OK;
+    }
+
+
+    private Type checkVDecl(Node n)   { 
+        if(ctx.children(n).isEmpty()){
+            return Type.OK;
+        }
+
+        Node name = child(n, 0, 2);
+        checkOk(child(n, 1, 2), "V_DECL");
+        declare(name, Type.NUMERIC);
+        return Type.OK;
+    }
+
+    private Type checkFDecl(Node n)   { 
+        if(ctx.children(n).isEmpty()){
+            return Type.OK;
+        }
+
+        checkOk(child(n, 0, 2), "F_DECL");
+        checkOk(child(n, 1, 2), "F_DECL");
+        return Type.OK;
+    }
+    private Type checkFType(Node n)   { 
+        if(ctx.children(n).isEmpty()){
+            throw ctx.error(n, "Malformed F_TYPE node: no children");
+        }
+
+        String header = ctx.kind(ctx.children(n).get(0));
+        boolean isNum = header.equals("num");
+        if(!isNum && !header.equals("void")){
+            throw ctx.error(n, "F_TYPE must start with void or num but starts with '" + header + "'");
+        }
+        int expected = isNum ? 12 : 9;
+        Node name = child(n, 1, expected);
+        declare(name, isNum ? Type.NUMERIC : Type.PROCEDURE);
+
+        checkOk(child(n, 3, expected), "F_TYPE");
+        checkOk(child(n, 6, expected), "F_TYPE");
+        if(isNum){
+            Node term = child(n, 9, expected);         // return ( TERM )
+            ctx.require(term, ctx.check(term), Type.NUMERIC, "F_TYPE (return value)");
+        }
+
+        return Type.OK;
+    }
+    private Type checkAlgo(Node n)    { 
+        if(ctx.children(n).isEmpty()){
+            return Type.OK;
+        }
+
+        checkOk(child(n, 0, 3), "ALGO");
+        checkOk(child(n, 2, 3), "ALGO");
+        return Type.OK;
+    }
+
+    private Node child(Node n, int i, int expectedCount) {
+        if (ctx.children(n).size() != expectedCount) {
+            throw ctx.error(n, "Malformed " + ctx.kind(n) + " node: expected " + expectedCount
+                    + " children but found " + ctx.children(n).size());
+        }
+        return ctx.children(n).get(i);
+    }
+
+    private void checkOk(Node child, String rule) {
+        ctx.require(child, ctx.check(child), Type.OK, rule);
+    }
+
+    private void declare(Node nameLeaf, Type t) {
+        if (!"NAME".equals(ctx.kind(nameLeaf))) {
+            throw ctx.error(nameLeaf, "Expected a name in a declaration but found '"
+                    + ctx.text(nameLeaf) + "'");
+        }
+        ctx.setNameType(ctx.text(nameLeaf), t);
+        ctx.setType(nameLeaf, t);
+    }
 }
