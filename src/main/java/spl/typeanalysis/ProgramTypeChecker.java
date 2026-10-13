@@ -1,6 +1,7 @@
 package spl.typeanalysis;
 
-import spl.tree.Node;
+import spl.tree.Node; // TODO: adjust to the real package of Node
+
 /**
  * Owner: Person 1.  Rules: SPL_PROG, P, V_DECL, F_DECL, F_TYPE, ALGO.
  * This is the only checker that WRITES name types (ctx.setNameType).
@@ -18,17 +19,28 @@ import spl.tree.Node;
  *  ALGO     -> eps                       ok
  *  ALGO     -> INSTR ; ALGO              both ok => ok
  *
+ * Child layout in the tree (keywords and punctuation are leaf children, in order):
+ *  SPL_PROG: [P, $]            P: [V_DECL, :, F_DECL, :, ALGO]
+ *  V_DECL:   [] | [NAME, V_DECL]       F_DECL: [] | [F_TYPE, F_DECL]
+ *  ALGO:     [] | [INSTR, ;, ALGO]
+ *  F_TYPE (void): [void, NAME, (, V_DECL, ), {, P, return, }]                 (9 children)
+ *  F_TYPE (num):  [num, NAME, (, V_DECL, ), {, P, return, (, TERM, ), }]      (12 children)
+ *  The NAME leaves in V_DECL and F_TYPE are DECLARATIONS: do not ctx.check() them,
+ *  set their type with ctx.setNameType(ctx.text(nameLeaf), ...). Empty V_DECL/F_DECL/ALGO
+ *  nodes have no children and are simply OK.
+ *
  * PROPOSED (confirm with team): set the function NAME's type from its header
  * (void -> procedure, num -> numeric) BEFORE checking the body, so recursive calls
  * do not hit "unknown".
  */
 public class ProgramTypeChecker {
+
     private final TypeContext ctx;
- 
+
     public ProgramTypeChecker(TypeContext ctx) {
         this.ctx = ctx;
     }
- 
+
     public Type check(Node n) {
         switch (ctx.kind(n)) {
             case "SPL_PROG": return checkSplProg(n);
@@ -41,7 +53,7 @@ public class ProgramTypeChecker {
                 throw ctx.error(n, "ProgramTypeChecker cannot handle " + ctx.kind(n));
         }
     }
- 
+
     private Type checkSplProg(Node n) { throw new UnsupportedOperationException("TODO"); }
     private Type checkP(Node n)       { throw new UnsupportedOperationException("TODO"); }
     private Type checkVDecl(Node n)   { throw new UnsupportedOperationException("TODO"); }

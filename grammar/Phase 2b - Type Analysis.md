@@ -104,17 +104,25 @@ try {
 To make the 2a symbol table carry the types, pass one shared `TypeContext` (or the 2a
 symbol table, once forwarding is in place) instead of the no-argument constructor.
 
-## Adapting the skeleton to the repo
+## Shape of the syntax tree
 
-- `Node` (`spl.tree.Node`) only exposes `getContents()`, so `TypeContext.kind()` reads it as the
-  grammar symbol for internal nodes and classifies leaves itself (`NUM`, `STRING`, `NAME`, a
-  keyword, or punctuation). The leaf patterns are marked `VERIFY` in `TypeContext`; check them
-  against what the lexer and phase 2a actually put in a leaf (number format, whether string
-  quotes are kept, the format of the new names).
-- Everything that touches `Node` is in `kind`, `children`, `text` and `isOperator` in
-  `TypeContext`; fix those and nothing else if the tree format changes.
-- Before coding the checkers, confirm whether keyword tokens (`mod`, `void`, `(` ...) appear as
-  leaf children in the tree; it decides how each checker finds the operator and its operands.
+`Node` only exposes `getContents()`, so `TypeContext.kind()` turns it into a grammar symbol.
+What the tree looks like (checked against a sample tree.xml):
+
+- Every token is a **leaf child, in order**: keywords (`mod`, `print`, `return`), punctuation
+  (`( ) { } ; : = $`), names (`#x`), numbers (`5`) and strings (`"hello"`, quotes kept).
+- Names are written `#name`. Numbers are plain digits. String contents may contain dots
+  (`"greets.a.user"`), so the decimal-dot rule must only look at `NUM` leaves.
+- **Epsilon rules are childless nonterminal nodes** (an empty `V_DECL`, `F_DECL`, `ALGO` or
+  `INPUT`). They are leaves too, so `kind()` recognises nonterminals by name, not by `isLeaf()`.
+- A `NAME` leaf under `V_DECL` / `F_TYPE` is a declaration (set its type); a `NAME` leaf under
+  `TERM`, `CALL` or `ASSIGN` is a use (read its type).
+- The exact child layout of every rule is in the Javadoc of the checker that owns it.
+
+Everything that touches `Node` is in `kind`, `children`, `text` and `isOperator` in
+`TypeContext`; fix those and nothing else if the tree format changes. Name types are keyed by
+the name's `contents`, which is only safe once 2a has made names unique per scope; if 2a does
+not rewrite the node contents, two scopes that reuse a name would share one type.
 
 ## Testing
 

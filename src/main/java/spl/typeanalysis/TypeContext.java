@@ -35,35 +35,42 @@ public class TypeContext {
 
     // ------------------------------------------------------------------
     // Tree access: the single adaptation point to Node.java.
-    // Node only has one string, getContents(), so:
-    //   - internal node -> contents is the grammar symbol ("TERM", "P", ...)
-    //   - leaf          -> contents is the token text; we classify it ourselves
+    // Node only has one string, getContents(): the grammar symbol for nonterminals,
+    // the token text for tokens. kind() classifies it.
     // ------------------------------------------------------------------
+
+    private static final Set<String> NONTERMINALS = new HashSet<>(Arrays.asList(
+            "SPL_PROG", "P", "V_DECL", "F_DECL", "F_TYPE", "ALGO", "INSTR", "OUTP",
+            "ASSIGN", "BRANCH", "LOOP", "COND", "CALL", "INPUT", "TERM", "BOOL"));
 
     private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
             "mod", "div", "add", "sub", "mul", "neg", "not", "and", "or",
             "eq", "larger", "lesser", "print", "nop", "comment", "if", "then",
             "else", "while", "until", "do", "void", "num", "return"));
 
-    /** Grammar symbol of the node: "TERM", "NAME", "NUM", "STRING", a keyword, or punctuation. */
+    /**
+     * Grammar symbol of the node: a nonterminal ("TERM", ...), "NAME", "NUM", "STRING",
+     * a keyword, or punctuation ( ) { } ; : = $.
+     *
+     * Nonterminals are recognised by name, NOT by isLeaf(): epsilon rules appear in the
+     * tree as childless nodes (e.g. an empty V_DECL or ALGO), so they are leaves too.
+     * Token formats seen in the tree: names are "#x", numbers "5", strings "\"hello\"".
+     */
     public String kind(Node n) {
         String c = n.getContents();
-        if (!n.isLeaf()) {
-            return c;                                   // internal node: grammar symbol
+        if (NONTERMINALS.contains(c) || KEYWORDS.contains(c)) {
+            return c;
         }
-        if (KEYWORDS.contains(c)) {
-            return c;                                   // keyword leaf: kind is the keyword
+        if (c.startsWith("#")) {
+            return "NAME";
         }
         if (c.matches("-?\\d+(\\.\\d+)?")) {
-            return "NUM";                               // VERIFY against your lexer's NUM format
+            return "NUM";                               // VERIFY decimal format against the lexer
         }
         if (c.length() >= 2 && c.startsWith("\"") && c.endsWith("\"")) {
-            return "STRING";                            // VERIFY: are quotes kept in contents?
+            return "STRING";                            // quotes are kept in contents
         }
-        if (c.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-            return "NAME";                              // VERIFY against the 2a new-name format
-        }
-        return c;                                       // punctuation: ( ) { } ; : =
+        return c;                                       // punctuation
     }
 
     /** Children in grammar order. */
