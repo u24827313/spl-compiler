@@ -78,6 +78,8 @@ class LexerIntegrationTest {
         Lexer.LexException ex = assertThrows(Lexer.LexException.class,
                 () -> lexer.tokenize(source));
         assertTrue(ex.getMessage().contains("line"));
+        assertTrue(ex.getMessage().contains("column 1"));
+        assertTrue(ex.getMessage().contains("'@'"));
     }
 
     @Test

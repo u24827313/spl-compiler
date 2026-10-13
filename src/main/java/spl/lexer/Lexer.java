@@ -75,7 +75,11 @@ public class Lexer
             // If no match, it cannot be processed
             if (matchedToken == null) 
             {
-                throw new LexException("Unrecognized token at line " + line + ", column " + column);
+                String character = Character.isISOControl(current)
+                    ? String.format("U+%04X", (int) current)
+                    : "'" + current + "'";
+                throw new LexException("Unrecognized character " + character
+                    + " at line " + line + ", column " + column);
             }
 
             tokens.add(matchedToken);
