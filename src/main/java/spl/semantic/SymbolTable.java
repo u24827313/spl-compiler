@@ -1,35 +1,60 @@
 package spl.semantic;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+
 public class SymbolTable {
-    SymbolTable(NameGenerator names){
+    private final NameGenerator names;
+    private final Deque<Scope> scopes = new ArrayDeque<>();
+    private final Map<Integer, SymbolEntry> entriesByNodeId = new HashMap<>();
 
-    }
-    NameGenerator names(){
-        return null; //stub
-    }               // the checkers use this to create new names
-    void pushScope(int level){
-
-    }
-    void popScope(){
-
-    }
-    Scope currentScope(){
-        return null; //stub
+    SymbolTable(NameGenerator names) {
+        this.names = names;
     }
 
-    SymbolEntry lookupVar(String name){
-        return null; //stub
-    }   // walks the stack, innermost first
+    NameGenerator names() {
+        return names;
+    }
 
-    SymbolEntry lookupFunc(String name){
-        return null; //stub
-    }   // TOP scope only (no walking outward)
+    void pushScope(int level) {
+        Scope newScope = new Scope(level) ;
+        scopes.push(newScope) ;
+    }
 
-    void record(int nodeId, SymbolEntry e){
+    void popScope() {
+        scopes.pop();
+    }
 
-    }  // node -> entity, for the code generator
+    Scope currentScope() {
+        return scopes.peek();
+    }
 
-    SymbolEntry getEntry(int nodeId){
-        return null; //stub
+    SymbolEntry lookupVar(String name) {
+        for (Scope scope : scopes) {
+            SymbolEntry entry = scope.getVar(name);
+            if (entry != null) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    SymbolEntry lookupFunc(String name) {
+        Scope scope = currentScope();
+        if (scope == null){
+            return null ;
+        }
+
+        return scope.getFunc(name) ;
+    }
+
+    void record(int nodeId, SymbolEntry entry) {
+        entriesByNodeId.put(nodeId, entry);
+    }
+
+    public SymbolEntry getEntry(int nodeId) {
+        return entriesByNodeId.get(nodeId);
     }
 }

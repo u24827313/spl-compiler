@@ -1,20 +1,39 @@
 package spl.semantic;
 
-public class Scope {
-    final int level = 1; // this is also a stub as the level will be initialized in one of the functions.
-    void putVar(String name, SymbolEntry e){
+import java.util.HashMap;
+import java.util.Map;
 
-    } 
-    SymbolEntry getVar(String name){
-        return null; // stub
+public class Scope {
+    final int level;
+
+    private final Map<String, SymbolEntry> variables = new HashMap<>();
+    private final Map<String, SymbolEntry> functions = new HashMap<>();
+
+    Scope(int level) {
+        this.level = level;
     }
-    void putFunc(String name, SymbolEntry e){
-        
-    }  
-    SymbolEntry getFunc(String name){
-        return null; // stub
+
+    void putVar(String name, SymbolEntry entry) {
+        variables.put(name, entry);
     }
-    boolean hasName(String name){
-        return false; // stub
-    } 
+
+    SymbolEntry getVar(String name) {
+        SymbolEntry var = variables.get(name) ;
+        return var ;
+    }
+
+    void putFunc(String name, SymbolEntry entry) {
+        functions.put(name, entry);
+    }
+
+    SymbolEntry getFunc(String name) {
+        SymbolEntry func = functions.get(name) ;
+        return func;
+    }
+
+    boolean hasName(String name) {
+        boolean containsVar = variables.containsKey(name) ;
+        boolean containsFunc = functions.containsKey(name) ;
+        return containsVar || containsFunc ;
+    }
 }
