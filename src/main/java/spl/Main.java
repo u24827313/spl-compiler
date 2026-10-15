@@ -8,7 +8,7 @@ import spl.lexer.Lexer;
 import spl.lexer.Token;
 import spl.parser.ParseException;
 import spl.parser.Parser;
-import spl.semantic.SemanticAnalyzer;
+import spl.semantic.SemanticAnalyser;
 import spl.semantic.SemanticException;
 import spl.tree.SyntaxTree;
 import spl.tree.XmlTreeWriter;
@@ -33,7 +33,7 @@ public class Main {
 
             new XmlTreeWriter().write(tree.getRoot(), new File("tree.xml"));
 
-            new SemanticAnalyzer().analyse(tree.getRoot());   // throws SemanticException on any violation
+            new SemanticAnalyser().analyse(tree);   // throws SemanticException on any violation
 
             System.out.println("OK: tree.xml written, semantic analysis passed.");
 
