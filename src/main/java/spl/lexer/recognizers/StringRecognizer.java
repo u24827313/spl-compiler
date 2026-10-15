@@ -73,6 +73,7 @@ public class StringRecognizer implements TokenRecognizer
                 || c == '.'
                 || c == ':'
                 || c == '–'
+                || c == '-'
                 || c == '?'
                 || c == '!';
     }
