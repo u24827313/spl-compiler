@@ -1,7 +1,7 @@
 package spl.semantic;
 
 public class SymbolEntry {
-    enum Kind { VAR, PARAM, FUNC }
+    public enum Kind { VAR, PARAM, FUNC }
     String originalName; 
     Kind kind; 
     int level; 
@@ -14,6 +14,25 @@ public class SymbolEntry {
         this.level = level;
         this.declNodeId = declNodeId;
         this.uniqueName = uniqueName;
+    }
+
+    public String getOriginalName() {
+        return this.originalName; 
+    }
+    
+    public Kind getKind() {
+        return this.kind; 
+    }
+    public int getLevel() { 
+        return this.level; 
+    }
+    
+    public int getDeclNodeId() { 
+        return this.declNodeId; 
+    }
+    
+    public String getUniqueName() { 
+        return this.uniqueName;
     }
 
     @Override
