@@ -40,6 +40,9 @@ public class Main {
         } catch (ParseException e) {
             System.err.println("Syntax Error: " + e.getMessage());
             System.exit(1);
+        } catch (Lexer.LexException e) {
+            System.err.println("Lexical Error: " + e.getMessage());
+            System.exit(1);
         } catch (SemanticException e) {
             System.err.println("Semantic Error: " + e.getMessage());
             System.exit(1);
