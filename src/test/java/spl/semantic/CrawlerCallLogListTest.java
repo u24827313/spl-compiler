@@ -1,7 +1,11 @@
 package spl.semantic;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import spl.lexer.Lexer;
+import spl.parser.Parser;
 import spl.tree.Node;
+import spl.tree.XmlTreeWriter;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,8 +39,11 @@ class CrawlerCallLogListTest {
     }
 
     @Test
-    void sampleTreeCallSequence() throws Exception {
-        Node root = TreeFixtures.load(Path.of("tree.xml"));
+    void sampleTreeCallSequence(@TempDir Path tempDir) throws Exception {
+        Node parsed = new Parser().parse(new Lexer().tokenize(Files.readString(Path.of("src/SPL.txt")))).getRoot();
+        Path xml = tempDir.resolve("tree.xml");
+        new XmlTreeWriter().write(parsed, xml.toFile());
+        Node root = TreeFixtures.load(xml);
         List<String> log = new ArrayList<>();
 
         new SemanticAnalyzer(new RecVars(log), new RecFuncs(log))

@@ -1,0 +1,1 @@
+: num #square ( #n ) { : : return ( mul ( #n #n ) ) } : $ 
