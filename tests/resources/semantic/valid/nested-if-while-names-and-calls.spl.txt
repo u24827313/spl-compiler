@@ -1,0 +1,1 @@
+#x : num #inc ( #n ) { : : return ( add ( #n 1 ) ) } : if eq ( #x 0 ) then { while eq ( #x 0 ) do { #x = #inc ( #x ) ; } ; } else { print ( #inc ( #x ) ) ; } ; $ 
