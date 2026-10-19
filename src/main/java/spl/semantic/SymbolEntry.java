@@ -1,5 +1,7 @@
 package spl.semantic;
 
+import spl.typeanalysis.Type;
+
 public class SymbolEntry {
     public enum Kind { VAR, PARAM, FUNC }
     String originalName; 
@@ -7,6 +9,7 @@ public class SymbolEntry {
     int level; 
     int declNodeId; 
     String uniqueName;
+    private Type type = Type.UNKNOWN;
 
     SymbolEntry(String originalName, Kind kind, int level, int declNodeId, String uniqueName) {
         this.originalName = originalName;
@@ -33,6 +36,14 @@ public class SymbolEntry {
     
     public String getUniqueName() { 
         return this.uniqueName;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 
     @Override

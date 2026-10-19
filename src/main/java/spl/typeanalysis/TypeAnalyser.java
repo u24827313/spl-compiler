@@ -1,5 +1,6 @@
 package spl.typeanalysis;
 
+import spl.semantic.SymbolTable;
 import spl.tree.Node;
 
 public class TypeAnalyser {
@@ -11,6 +12,10 @@ public class TypeAnalyser {
  
     public TypeAnalyser(TypeContext ctx) {
         this.ctx = ctx;
+    }
+
+    public TypeAnalyser(SymbolTable symbols) {
+        this(new TypeContext(symbols));
     }
  
     public TypeContext context() {

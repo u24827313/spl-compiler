@@ -1,6 +1,8 @@
 package spl.typeanalysis;
 
 import spl.tree.Node; // TODO: adjust to the real package of Node
+import spl.semantic.SymbolEntry;
+import spl.semantic.SymbolTable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,12 +24,18 @@ public class TypeContext {
 
     private final Map<Node, Type> nodeTypes = new IdentityHashMap<>();
     private final Map<String, Type> nameTypes = new HashMap<>();
+    private final SymbolTable symbols;
 
     private final ProgramTypeChecker program;
     private final ExprTypeChecker expr;
     private final InstrTypeChecker instr;
 
     public TypeContext() {
+        this(null);
+    }
+
+    public TypeContext(SymbolTable symbols) {
+        this.symbols = symbols;
         this.program = new ProgramTypeChecker(this);
         this.expr = new ExprTypeChecker(this);
         this.instr = new InstrTypeChecker(this);
@@ -114,6 +122,25 @@ public class TypeContext {
         nameTypes.put(newName, t);
     }
 
+    public Type nameType(Node nameNode) {
+        SymbolEntry entry = symbolEntry(nameNode);
+        return entry == null ? nameType(text(nameNode)) : entry.getType();
+    }
+
+    public void setNameType(Node nameNode, Type t) {
+        SymbolEntry entry = symbolEntry(nameNode);
+        if (entry == null) {
+            setNameType(text(nameNode), t);
+            return;
+        }
+        entry.setType(t);
+        nameTypes.put(entry.getUniqueName(), t);
+    }
+
+    private SymbolEntry symbolEntry(Node nameNode) {
+        return symbols == null ? null : symbols.getEntry(nameNode.getId());
+    }
+
     // ------------------------------------------------------------------
     // Dispatch
     // ------------------------------------------------------------------
@@ -134,7 +161,7 @@ public class TypeContext {
                 t = instr.check(n);
                 break;
             case "NAME":
-                t = nameType(text(n));   // leaf: whatever the declaration gave it
+                t = nameType(n);         // leaf: whatever the declaration gave it
                 break;
             case "NUM":
                 t = Type.NUMERIC;        // leaf

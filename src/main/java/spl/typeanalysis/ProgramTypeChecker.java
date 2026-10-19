@@ -60,6 +60,7 @@ public class ProgramTypeChecker {
     }
     private Type checkP(Node n)       { 
         checkOk(child(n, 0, 5), "P");
+        predeclareFunctions(child(n, 2, 5));
         checkOk(child(n, 2, 5), "P");
         checkOk(child(n, 4, 5), "P");
         return Type.OK;
@@ -136,7 +137,32 @@ public class ProgramTypeChecker {
             throw ctx.error(nameLeaf, "Expected a name in a declaration but found '"
                     + ctx.text(nameLeaf) + "'");
         }
-        ctx.setNameType(ctx.text(nameLeaf), t);
+        ctx.setNameType(nameLeaf, t);
         ctx.setType(nameLeaf, t);
+    }
+
+    private void predeclareFunctions(Node fDecl) {
+        var children = ctx.children(fDecl);
+        if (children.isEmpty()) {
+            return;
+        }
+        if (children.size() != 2) {
+            throw ctx.error(fDecl, "Malformed F_DECL node: expected 2 children but found "
+                    + children.size());
+        }
+
+        Node fType = children.get(0);
+        var functionChildren = ctx.children(fType);
+        if (functionChildren.isEmpty()) {
+            throw ctx.error(fType, "Malformed F_TYPE node: no children");
+        }
+        String header = ctx.kind(functionChildren.get(0));
+        boolean isNum = header.equals("num");
+        if (!isNum && !header.equals("void")) {
+            throw ctx.error(fType, "F_TYPE must start with void or num but starts with '" + header + "'");
+        }
+        int expected = isNum ? 12 : 9;
+        declare(child(fType, 1, expected), isNum ? Type.NUMERIC : Type.PROCEDURE);
+        predeclareFunctions(children.get(1));
     }
 }
