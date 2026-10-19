@@ -49,7 +49,57 @@ public class InstrTypeChecker {
         }
     }
 
-    private Type checkInstr(Node n)  { throw new UnsupportedOperationException("TODO"); }
+    private Type checkInstr(Node n) {
+        var children = ctx.children(n);
+
+        if (children.isEmpty()) {
+            throw ctx.error(n, "Malformed INSTR: expected an instruction but found no children");
+        }
+
+        Node child = children.get(0) ;
+        String variant = ctx.kind(child) ;
+        String kind = "" ;
+        switch (variant) {
+            case "nop":
+                requireChildCount(n, 1);
+                return Type.OK;
+
+            case "comment":
+                requireChildCount(n, 2);
+                Node comment = children.get(1);
+                kind = ctx.kind(comment) ;
+                if (! kind.equals("STRING")){
+                    throw ctx.error(n, "Malformed INSTR: expected STRING after comment but found "
+                            + kind);
+                }
+                requireChildType(n, 1, Type.OK, "INSTR -> comment STRING");
+                return Type.OK;
+
+            case "print":
+                requireChildCount(n, 2);
+                Node output = children.get(1);
+                kind = ctx.kind(output);
+                if(!kind.equals("OUTP")){
+                    throw ctx.error(n, "Malformed INSTR: expected OUTP after print but found "
+                            + kind);
+                }
+                requireChildType(n, 1, Type.OK, "INSTR -> print OUTP");
+                return Type.OK;
+
+            case "ASSIGN":
+                requireChildCount(n, 1);
+                requireChildType(n, 0, Type.OK, "INSTR -> ASSIGN");
+                return Type.OK;
+
+            case "CALL":
+                requireChildCount(n, 1);
+                requireChildType(n, 0, Type.PROCEDURE, "INSTR -> CALL");
+                return Type.OK;
+
+            default:
+                throw ctx.error(n, "Unknown INSTR alternative: " + variant);
+        }
+    }
 
     private Type checkOutp(Node n) {
         var children = ctx.children(n);
@@ -86,7 +136,25 @@ public class InstrTypeChecker {
         }
     }
 
-    private Type checkAssign(Node n) { throw new UnsupportedOperationException("TODO"); }
+    private Type checkAssign(Node n) {
+        requireChildCount(n, 3);
+        var children = ctx.children(n);
+
+        Node name = children.get(0);
+        String kind = ctx.kind(name) ;
+        if (!kind.equals("NAME")) {
+            throw ctx.error(name, "Malformed ASSIGN: expected NAME but found " + kind);
+        }
+        Node child = children.get(1) ;
+        kind = ctx.kind(child);
+        if (!kind.equals("=")) {
+            throw ctx.error(n, "Malformed ASSIGN: expected '=' between NAME and TERM");
+        }
+
+        ctx.require(name, ctx.check(name), Type.NUMERIC, "ASSIGN -> NAME = TERM");
+        requireChildType(n, 2, Type.NUMERIC, "ASSIGN -> NAME = TERM");
+        return Type.OK;
+    }
     private Type checkBranch(Node n) { throw new UnsupportedOperationException("TODO"); }
     private Type checkLoop(Node n)   { throw new UnsupportedOperationException("TODO"); }
 
