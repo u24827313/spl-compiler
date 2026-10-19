@@ -3,6 +3,7 @@ package spl.typeanalysis;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import spl.tree.Node;
 
@@ -556,6 +557,163 @@ class InstrTypeCheckerTest {
         assertEquals(Type.OK, ctx.typeOf(branch));
     }
 
+    @ParameterizedTest
+    @CsvSource({"true, while", "true, until", "false, while", "false, until"})
+    void acceptsBothLoopLayoutsWithEitherConditionKeyword(boolean prefix, String keyword) {
+        Node condition = loopCondition(keyword);
+        Node booleanCondition = comparison();
+        Node body = node("ALGO");
+        Node loop = loop(prefix, condition, booleanCondition, body);
+
+        assertEquals(Type.OK, ctx.check(loop));
+
+        assertEquals(Type.OK, ctx.typeOf(loop));
+        assertEquals(Type.OK, ctx.typeOf(condition));
+        assertEquals(Type.BOOLEAN, ctx.typeOf(booleanCondition));
+        assertEquals(Type.OK, ctx.typeOf(body));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void acceptsNonemptyLoopBodyInBothLayouts(boolean prefix) {
+        Node instruction = noOpInstruction();
+        Node body = algo(instruction);
+        Node loop = loop(prefix, loopCondition("while"), comparison(), body);
+
+        assertEquals(Type.OK, ctx.check(loop));
+
+        assertEquals(Type.OK, ctx.typeOf(loop));
+        assertEquals(Type.OK, ctx.typeOf(body));
+        assertEquals(Type.OK, ctx.typeOf(instruction));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void rejectsNumericConditionInBothLoopLayouts(boolean prefix) {
+        Node condition = term("1");
+        Node loop = loop(prefix, loopCondition("while"), condition, node("ALGO"));
+        String rule = prefix
+                ? "LOOP -> COND BOOL do { ALGO }"
+                : "LOOP -> do { ALGO } COND BOOL";
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
+
+        assertEquals("Type error in rule " + rule + ": expected boolean but found numeric",
+                error.getMessage());
+        assertSame(condition, error.getNode());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void propagatesInvalidBooleanExpressionInBothLoopLayouts(boolean prefix) {
+        Node invalidCall = call("#procedure");
+        Node condition = node("BOOL", node("eq"), node("("),
+                node("TERM", invalidCall), term("1"), node(")"));
+        Node loop = loop(prefix, loopCondition("until"), condition, node("ALGO"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
+
+        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+                error.getMessage());
+        assertSame(invalidCall, error.getNode());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void rejectsInvalidInstructionInBothLoopBodies(boolean prefix) {
+        Node invalidCall = call("#function");
+        Node body = algo(node("INSTR", invalidCall));
+        Node loop = loop(prefix, loopCondition("while"), comparison(), body);
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
+
+        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+                error.getMessage());
+        assertSame(invalidCall, error.getNode());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void rejectsInvalidConditionKeywordInBothLoopLayouts(boolean prefix) {
+        Node condition = loopCondition("if");
+        Node loop = loop(prefix, condition, comparison(), node("ALGO"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
+
+        assertEquals("Malformed COND: expected while or until but found if", error.getMessage());
+        assertSame(condition, error.getNode());
+    }
+
+    @Test
+    void acceptsNestedLoops() {
+        Node innerLoop = postfixLoop(algo(noOpInstruction()), loopCondition("until"), comparison());
+        Node outerBody = algo(node("INSTR", innerLoop));
+        Node outerLoop = prefixLoop(loopCondition("while"), comparison(), outerBody);
+
+        assertEquals(Type.OK, ctx.check(outerLoop));
+
+        assertEquals(Type.OK, ctx.typeOf(outerLoop));
+        assertEquals(Type.OK, ctx.typeOf(innerLoop));
+        assertEquals(Type.OK, ctx.typeOf(outerBody));
+    }
+
+    @Test
+    void acceptsBranchInsideLoop() {
+        Node nestedBranch = branch(comparison(), node("ALGO"), node("ALGO"));
+        Node body = algo(node("INSTR", nestedBranch));
+        Node loop = prefixLoop(loopCondition("while"), comparison(), body);
+
+        assertEquals(Type.OK, ctx.check(loop));
+
+        assertEquals(Type.OK, ctx.typeOf(loop));
+        assertEquals(Type.OK, ctx.typeOf(nestedBranch));
+    }
+
+    @Test
+    void acceptsLoopInsideBranch() {
+        Node nestedLoop = postfixLoop(node("ALGO"), loopCondition("until"), comparison());
+        Node thenAlgorithm = algo(node("INSTR", nestedLoop));
+        Node branch = branch(comparison(), thenAlgorithm, node("ALGO"));
+
+        assertEquals(Type.OK, ctx.check(branch));
+
+        assertEquals(Type.OK, ctx.typeOf(branch));
+        assertEquals(Type.OK, ctx.typeOf(nestedLoop));
+    }
+
+    @Test
+    void acceptsLoopInstructionAndRecordsLoopAndWrapperTypes() {
+        Node loop = prefixLoop(loopCondition("until"), comparison(), node("ALGO"));
+        Node instruction = node("INSTR", loop);
+
+        assertEquals(Type.OK, ctx.check(instruction));
+
+        assertEquals(Type.OK, ctx.typeOf(instruction));
+        assertEquals(Type.OK, ctx.typeOf(loop));
+    }
+
+    @Test
+    void rejectsLoopWithUnsupportedFirstChildKind() {
+        Node loop = node("LOOP", node("while"), comparison(), node("do"), node("{"),
+                node("ALGO"), node("}"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
+
+        assertEquals("Malformed LOOP: expected COND or do at first child but found while",
+                error.getMessage());
+        assertSame(loop, error.getNode());
+    }
+
+    @Test
+    void rejectsLoopWithIncorrectChildCount() {
+        Node loop = node("LOOP");
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
+
+        assertEquals("Malformed LOOP: expected 6 children but found 0", error.getMessage());
+        assertSame(loop, error.getNode());
+    }
+
     @Test
     void rejectsBranchWithIncorrectChildCount() {
         Node branch = node("BRANCH");
@@ -615,6 +773,25 @@ class InstrTypeCheckerTest {
             rest = node("INPUT", arguments[i], rest);
         }
         return rest;
+    }
+
+    private Node loopCondition(String keyword) {
+        return node("COND", node(keyword));
+    }
+
+    private Node prefixLoop(Node condition, Node booleanCondition, Node body) {
+        return node("LOOP", condition, booleanCondition, node("do"), node("{"), body, node("}"));
+    }
+
+    private Node postfixLoop(Node body, Node condition, Node booleanCondition) {
+        return node("LOOP", node("do"), node("{"), body, node("}"),
+                condition, booleanCondition);
+    }
+
+    private Node loop(boolean prefix, Node condition, Node booleanCondition, Node body) {
+        return prefix
+                ? prefixLoop(condition, booleanCondition, body)
+                : postfixLoop(body, condition, booleanCondition);
     }
 
     private Node noOpInstruction() {
