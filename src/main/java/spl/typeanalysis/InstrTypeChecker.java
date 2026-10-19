@@ -50,9 +50,69 @@ public class InstrTypeChecker {
     }
 
     private Type checkInstr(Node n)  { throw new UnsupportedOperationException("TODO"); }
-    private Type checkOutp(Node n)   { throw new UnsupportedOperationException("TODO"); }
+
+    private Type checkOutp(Node n) {
+        var children = ctx.children(n);
+
+
+        if (children.size() == 1) {
+            Node child = children.get(0) ;
+            String kind = ctx.kind(child);
+            if(!kind.equals("STRING")){
+                throw ctx.error(n, "Malformed OUTP: expected STRING but found "+ kind);
+            }
+
+            ctx.require(child, ctx.check(child), Type.OK, "OUTP -> STRING");
+            return Type.OK;
+        }
+
+        int size = children.size();
+        if (size == 3) {
+            Node leftChild = children.get(0) ;
+            Node rightChild = children.get(2);
+            String leftKind = ctx.kind(leftChild);
+            String rightKind = ctx.kind(rightChild);
+
+            if(leftKind.equals("(") && rightKind.equals(")")){
+                requireChildType(n, 1, Type.NUMERIC, "OUTP -> ( TERM )");
+                return Type.OK;
+            }
+
+            throw ctx.error(n, "Malformed OUTP: expected ( TERM )");
+        }
+        else {
+            throw ctx.error(n, "Malformed OUTP: expected [STRING] or [(, TERM, )] but found "
+                    + children.size() + " children");
+        }
+    }
+
     private Type checkAssign(Node n) { throw new UnsupportedOperationException("TODO"); }
     private Type checkBranch(Node n) { throw new UnsupportedOperationException("TODO"); }
     private Type checkLoop(Node n)   { throw new UnsupportedOperationException("TODO"); }
-    private Type checkCond(Node n)   { throw new UnsupportedOperationException("TODO"); }
+
+    private Type checkCond(Node n) {
+        requireChildCount(n, 1);
+
+        Node keyword = ctx.children(n).get(0);
+        String condition = ctx.kind(keyword);
+
+        if (!(condition.equals("while") || condition.equals("until"))){
+            throw ctx.error(n, "Malformed COND: expected while or until but found " + condition);
+        }
+
+        return Type.OK;
+    }
+
+    private void requireChildType(Node parent, int index, Type expected, String rule) {
+        Node child = ctx.children(parent).get(index);
+        ctx.require(child, ctx.check(child), expected, rule);
+    }
+
+    private void requireChildCount(Node n, int expected) {
+        int actual = ctx.children(n).size();
+        if (actual != expected) {
+            throw ctx.error(n, "Malformed " + ctx.kind(n) + ": expected " + expected
+                    + " children but found " + actual);
+        }
+    }
 }
