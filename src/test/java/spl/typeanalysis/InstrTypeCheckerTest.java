@@ -426,13 +426,144 @@ class InstrTypeCheckerTest {
     }
 
     @Test
-    void rejectsUnimplementedBranchAlternative() {
-        Node instruction = node("INSTR", node("BRANCH"));
+    void acceptsBranchWithEmptyAlgorithmsAndRecordsTypes() {
+        Node condition = comparison();
+        Node thenAlgorithm = node("ALGO");
+        Node elseAlgorithm = node("ALGO");
+        Node branch = branch(condition, thenAlgorithm, elseAlgorithm);
 
-        TypeException error = assertThrows(TypeException.class, () -> ctx.check(instruction));
+        assertEquals(Type.OK, ctx.check(branch));
 
-        assertEquals("Unknown INSTR alternative: BRANCH", error.getMessage());
-        assertSame(instruction, error.getNode());
+        assertEquals(Type.OK, ctx.typeOf(branch));
+        assertEquals(Type.BOOLEAN, ctx.typeOf(condition));
+        assertEquals(Type.OK, ctx.typeOf(thenAlgorithm));
+        assertEquals(Type.OK, ctx.typeOf(elseAlgorithm));
+    }
+
+    @Test
+    void acceptsBranchWithNonemptyAlgorithms() {
+        Node thenInstruction = noOpInstruction();
+        Node elseFirstInstruction = noOpInstruction();
+        Node elseSecondInstruction = noOpInstruction();
+        Node thenAlgorithm = algo(thenInstruction);
+        Node elseAlgorithm = algo(elseFirstInstruction, elseSecondInstruction);
+        Node branch = branch(comparison(), thenAlgorithm, elseAlgorithm);
+
+        assertEquals(Type.OK, ctx.check(branch));
+
+        assertEquals(Type.OK, ctx.typeOf(thenInstruction));
+        assertEquals(Type.OK, ctx.typeOf(elseFirstInstruction));
+        assertEquals(Type.OK, ctx.typeOf(elseSecondInstruction));
+        assertEquals(Type.OK, ctx.typeOf(thenAlgorithm));
+        assertEquals(Type.OK, ctx.typeOf(elseAlgorithm));
+    }
+
+    @Test
+    void rejectsNumericBranchCondition() {
+        Node condition = term("1");
+        Node branch = branch(condition, node("ALGO"), node("ALGO"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
+
+        assertEquals("Type error in rule BRANCH -> if BOOL then { ALGO } else { ALGO }: "
+                        + "expected boolean but found numeric",
+                error.getMessage());
+        assertSame(condition, error.getNode());
+    }
+
+    @Test
+    void propagatesInvalidExpressionFromBranchCondition() {
+        Node invalidCall = call("#procedure");
+        Node condition = node("BOOL", node("eq"), node("("),
+                node("TERM", invalidCall), term("1"), node(")"));
+        Node branch = branch(condition, node("ALGO"), node("ALGO"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
+
+        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+                error.getMessage());
+        assertSame(invalidCall, error.getNode());
+    }
+
+    @Test
+    void rejectsInvalidInstructionInFirstBranchBody() {
+        Node invalidCall = call("#function");
+        Node thenAlgorithm = algo(node("INSTR", invalidCall));
+        Node branch = branch(comparison(), thenAlgorithm, node("ALGO"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
+
+        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+                error.getMessage());
+        assertSame(invalidCall, error.getNode());
+    }
+
+    @Test
+    void checksSecondBranchBodyEvenWhenConditionIsAlwaysTrue() {
+        Node condition = comparison();
+        Node firstInstruction = noOpInstruction();
+        Node firstAlgorithm = algo(firstInstruction);
+        Node invalidCall = call("#function");
+        Node secondAlgorithm = algo(node("INSTR", invalidCall));
+        Node branch = branch(condition, firstAlgorithm, secondAlgorithm);
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
+
+        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+                error.getMessage());
+        assertSame(invalidCall, error.getNode());
+        assertEquals(Type.BOOLEAN, ctx.typeOf(condition));
+        assertEquals(Type.OK, ctx.typeOf(firstInstruction));
+        assertEquals(Type.OK, ctx.typeOf(firstAlgorithm));
+    }
+
+    @Test
+    void checksLaterInstructionInBranchAlgorithm() {
+        Node firstInstruction = noOpInstruction();
+        Node invalidCall = call("#function");
+        Node thenAlgorithm = algo(firstInstruction, node("INSTR", invalidCall));
+        Node branch = branch(comparison(), thenAlgorithm, node("ALGO"));
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
+
+        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+                error.getMessage());
+        assertSame(invalidCall, error.getNode());
+        assertEquals(Type.OK, ctx.typeOf(firstInstruction));
+    }
+
+    @Test
+    void acceptsNestedBranch() {
+        Node innerBranch = branch(comparison(), node("ALGO"), node("ALGO"));
+        Node outerThenAlgorithm = algo(node("INSTR", innerBranch));
+        Node outerBranch = branch(comparison(), outerThenAlgorithm, node("ALGO"));
+
+        assertEquals(Type.OK, ctx.check(outerBranch));
+
+        assertEquals(Type.OK, ctx.typeOf(outerBranch));
+        assertEquals(Type.OK, ctx.typeOf(innerBranch));
+        assertEquals(Type.OK, ctx.typeOf(outerThenAlgorithm));
+    }
+
+    @Test
+    void acceptsBranchInstructionAndRecordsBranchAndWrapperTypes() {
+        Node branch = branch(comparison(), node("ALGO"), node("ALGO"));
+        Node instruction = node("INSTR", branch);
+
+        assertEquals(Type.OK, ctx.check(instruction));
+
+        assertEquals(Type.OK, ctx.typeOf(instruction));
+        assertEquals(Type.OK, ctx.typeOf(branch));
+    }
+
+    @Test
+    void rejectsBranchWithIncorrectChildCount() {
+        Node branch = node("BRANCH");
+
+        TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
+
+        assertEquals("Malformed BRANCH: expected 10 children but found 0", error.getMessage());
+        assertSame(branch, error.getNode());
     }
 
     @Test
@@ -484,6 +615,24 @@ class InstrTypeCheckerTest {
             rest = node("INPUT", arguments[i], rest);
         }
         return rest;
+    }
+
+    private Node noOpInstruction() {
+        return node("INSTR", node("nop"));
+    }
+
+    private Node algo(Node... instructions) {
+        Node rest = node("ALGO");
+        for (int i = instructions.length - 1; i >= 0; i--) {
+            rest = node("ALGO", instructions[i], node(";"), rest);
+        }
+        return rest;
+    }
+
+    private Node branch(Node condition, Node thenAlgorithm, Node elseAlgorithm) {
+        return node("BRANCH",
+                node("if"), condition, node("then"), node("{"), thenAlgorithm,
+                node("}"), node("else"), node("{"), elseAlgorithm, node("}"));
     }
 
     private Node output(Node expression) {

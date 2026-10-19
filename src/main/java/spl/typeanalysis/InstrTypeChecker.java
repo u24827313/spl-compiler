@@ -96,6 +96,11 @@ public class InstrTypeChecker {
                 requireChildType(n, 0, Type.PROCEDURE, "INSTR -> CALL");
                 return Type.OK;
 
+            case "BRANCH":
+                requireChildCount(n, 1);
+                requireChildType(n, 0, Type.OK, "INSTR -> BRANCH");
+                return Type.OK;
+
             default:
                 throw ctx.error(n, "Unknown INSTR alternative: " + variant);
         }
@@ -155,7 +160,15 @@ public class InstrTypeChecker {
         requireChildType(n, 2, Type.NUMERIC, "ASSIGN -> NAME = TERM");
         return Type.OK;
     }
-    private Type checkBranch(Node n) { throw new UnsupportedOperationException("TODO"); }
+    private Type checkBranch(Node n) {
+        String rule = "BRANCH -> if BOOL then { ALGO } else { ALGO }";
+        requireChildCount(n, 10);
+
+        requireChildType(n, 1, Type.BOOLEAN, rule);
+        requireChildType(n, 4, Type.OK, rule);
+        requireChildType(n, 8, Type.OK, rule);
+        return Type.OK;
+    }
     private Type checkLoop(Node n)   { throw new UnsupportedOperationException("TODO"); }
 
     private Type checkCond(Node n) {
