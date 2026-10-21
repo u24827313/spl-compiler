@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CodeGenContextTest {
 
@@ -35,6 +37,70 @@ class CodeGenContextTest {
         CodeGenContext context = new CodeGenContext(symbols, "float");
 
         assertEquals("v1", context.lookUp(variableUse));
+    }
+
+    // ---- 3b additions ----
+
+    @Test
+    void prefixedVariableIsRegisteredForDeclaration() {
+        CodeGenContext context = new CodeGenContext(analyse("#x : : #x = 5 ; $ "), "int");
+
+        assertEquals("t1", context.newVar());
+        assertEquals("f1t2", context.newVar("f1"));
+        assertEquals("int t1;\nint f1t2;\n", context.declarations());
+    }
+
+    @Test
+    void userVariablesAreDeclaredOnceAndBeforeTemps() {
+        CodeGenContext context = new CodeGenContext(analyse("#x : : #x = 5 ; $ "), "float");
+
+        context.newVar();
+        context.declareUserVar("v1");
+        context.declareUserVar("v2");
+        context.declareUserVar("v1");   // duplicate is ignored
+
+        assertEquals("float v1;\nfloat v2;\nfloat t1;\n", context.declarations());
+    }
+
+    @Test
+    void scratchContextHasItsOwnCountersAndDeclarations() {
+        CodeGenContext context = new CodeGenContext(analyse("#x : : #x = 5 ; $ "), "int");
+        context.newVar();
+        context.newLabel();
+
+        CodeGenContext scratch = context.scratch();
+
+        assertNotSame(context, scratch);
+        assertEquals("t1", scratch.newVar());
+        assertEquals("L1", scratch.newLabel());
+        assertEquals("int t1;\n", context.declarations());   // untouched by the scratch var
+    }
+
+    @Test
+    void registryIsRejectedWhenContextWasBuiltWithoutOne() {
+        CodeGenContext context = new CodeGenContext(analyse("#x : : #x = 5 ; $ "), "int");
+
+        assertThrows(IllegalStateException.class, context::registry);
+    }
+
+    @Test
+    void inlineDepthGuardTripsOnRunawayNesting() {
+        CodeGenContext context = new CodeGenContext(analyse("#x : : #x = 5 ; $ "), "int");
+
+        for (int i = 0; i < 100; i++) {
+            context.beginInline();
+        }
+        assertThrows(IllegalStateException.class, context::beginInline);
+    }
+
+    @Test
+    void inlineDepthIsReleasedByEndInline() {
+        CodeGenContext context = new CodeGenContext(analyse("#x : : #x = 5 ; $ "), "int");
+
+        for (int i = 0; i < 1000; i++) {
+            context.beginInline();
+            context.endInline();
+        }
     }
 
     private static SymbolTable analyse(String source) {

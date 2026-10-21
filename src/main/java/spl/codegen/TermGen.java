@@ -21,7 +21,7 @@ public class TermGen {
 
         Node first = term.getChildren().get(0);
         if(is(first, CALL)){
-            throw new UnsupportedOperationException("3b: function call inside TERM");
+            return CallGen.transCallTerm(first, resultVar, ctx);
         }
         if(isUserDefinedName(first)){
             return resultVar + " = " + ctx.lookUp(first) + ";\n";

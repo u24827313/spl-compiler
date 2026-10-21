@@ -14,7 +14,9 @@ import java.util.List;
 final class GenKinds {
     static final String ALGO = "ALGO", INSTR = "INSTR", OUTP = "OUTP",
             ASSIGN = "ASSIGN", BRANCH = "BRANCH", LOOP = "LOOP", COND = "COND",
-            BOOL = "BOOL", TERM = "TERM", CALL = "CALL";
+            BOOL = "BOOL", TERM = "TERM", CALL = "CALL",
+            // 3b
+            P = "P", V_DECL = "V_DECL", F_DECL = "F_DECL", F_TYPE = "F_TYPE", INPUT = "INPUT";
 
     private GenKinds() {}
 
@@ -37,6 +39,26 @@ final class GenKinds {
         List<Node> out = new ArrayList<>();
         for (Node c : n.getChildren()) if (is(c, contents)) out.add(c);
         return out;
+    }
+
+    static Node firstNameChild(Node n) {
+        for (Node c : n.getChildren()) if (isUserDefinedName(c)) return c;
+        return null;
+    }
+ 
+    /** 3b: the #name leaves of a V_DECL chain (V_DECL -> eps | NAME V_DECL), in order. */
+    static List<Node> namesInVDecl(Node vdecl) {
+        List<Node> names = new ArrayList<>();
+        Node cur = vdecl;
+        while (cur != null && !cur.isLeaf()) {
+            Node next = null;
+            for (Node c : cur.getChildren()) {
+                if (isUserDefinedName(c)) names.add(c);
+                else if (is(c, V_DECL)) next = c;
+            }
+            cur = next;
+        }
+        return names;
     }
 
     /** Text of a leaf, or of the single leaf below a wrapper node. */

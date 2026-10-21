@@ -56,32 +56,35 @@ The code-mine is still written to the output as the sheet requires, as a **comme
 
 ## 4. Shared contracts (agree on these BEFORE parallel coding)
 
-### 4.1 `CodeGenContext` additions (Lead)
+### 4.1 `CodeGenContext` additions (Lead) — done in the skeleton
 
 ```java
-// keep the existing 2-arg constructor so CodeGenContextTest still compiles
-public CodeGenContext(SymbolTable symT, String cType, FunctionRegistry registry)
+// the existing 2-arg constructor is kept so CodeGenContextTest and 3a code still compile
+public CodeGenContext(SymbolTable symT, String cType)
+CodeGenContext(SymbolTable symT, String cType, FunctionRegistry registry)   // package-private
 
-public String newVar(String prefix);            // returns prefix + "t" + n, registered for hoisting (used for the return var r = f ++ n)
-public void   declareUserVar(String uniqueName);// hoisted; LinkedHashSet so no duplicates
-public FunctionRegistry registry();
-public CodeGenContext scratch();                // fresh counters/lists, same symT/cType/registry; used to generate the code-mine
-public String declarations();                   // user vars first, then temps
+public String newVar(String prefix);             // prefix + "t" + n, registered for hoisting (return var r = f ++ n)
+public void   declareUserVar(String uniqueName); // hoisted; LinkedHashSet, duplicates ignored
+FunctionRegistry registry();                     // package-private; throws if built without one
+public SymbolTable symbolTable();                // CallGen needs it for registry().forCall(call, symT)
+public CodeGenContext scratch();                 // fresh counters/lists, same symT/cType/registry (code-mine)
+public void beginInline(); public void endInline(); // depth guard, trips above 100 levels
+public String declarations();                    // user vars first, then temps
 ```
 
 ### 4.2 `FunctionRegistry` and `FunctionInfo` (skeleton by Lead, filled in by Person 2), new, package `spl.codegen`
 
 ```java
-final class FunctionInfo {
-    String uniqueName;          // f1, f2, ...
-    boolean isVoid;
-    List<Node> paramNameNodes;  // #name leaves of the F_TYPE's V_DECL, in order
-    Node bodyP;                 // the F_TYPE's P node
-    Node returnTerm;            // TERM child of F_TYPE, null for void
+final class FunctionInfo {                        // complete data class, no TODOs
+    final String uniqueName;          // f1, f2, ...
+    final boolean isVoid;
+    final List<Node> paramNameNodes;  // #name leaves of the F_TYPE's V_DECL, in order
+    final Node bodyP;                 // the F_TYPE's P node
+    final Node returnTerm;            // TERM child of F_TYPE, null for void
 }
 final class FunctionRegistry {
-    static FunctionRegistry build(Node root);                      // crawl EVERY F_TYPE in the tree (nested too); key = id of its #name leaf
-    FunctionInfo forCall(Node callNode, SymbolTable symT);         // callNameLeaf -> symT.getEntry(id).getDeclNodeId() -> info
+    static FunctionRegistry build(Node splProgRoot, SymbolTable symT);  // crawl EVERY F_TYPE (nested too); key = id of its #name leaf
+    FunctionInfo forCall(Node callNode, SymbolTable symT);              // callNameLeaf -> symT.getEntry(id).getDeclNodeId() -> info
 }
 ```
 
@@ -151,10 +154,10 @@ All paths are under `src/main/java/spl/` (main) or `src/test/java/spl/` (test).
 |                                                       |                                                    | `codegen/TermGen.java`                      | Replace the `throw ... "3b"` for `CALL` with `return CallGen.transCallTerm(first, resultVar, ctx);`.                                                        |
 |                                                       |                                                    | `codegen/CodeGenMain.java`                  | Change the signature to take the `SPL_PROG` root (`generate(Node splProg, SymbolTable symT, String outPath)`) with a `// TODO` body. No logic.              |
 |                                                       |                                                    | `test/.../CodeGenContextTest.java`          | Add tests for the new context methods.                                                                                                                            |
-| **Person 2** (inlining engine) - Donovan       | `test/.../codegen/FunctionRegistryTest.java`     | `codegen/FunctionRegistry.java`             | Implement `build` (crawl every `F_TYPE`, key = id of its `#name` leaf) and `forCall`.                                                                     |
+| **Person 2** (inlining engine) - Donovan        | `test/.../codegen/FunctionRegistryTest.java`     | `codegen/FunctionRegistry.java`             | Implement `build` (crawl every `F_TYPE`, key = id of its `#name` leaf) and `forCall`.                                                                     |
 |                                                       | `test/.../codegen/CallGenTest.java`              | `codegen/CallGen.java`                      | Implement the inline procedure (section 5.2 below), the void and num cases, and a depth guard.                                                                    |
 |                                                       |                                                    | `codegen/AlgoGen.java`                      | **One line** in the `CALL` case of `transInstr`: `return CallGen.transCallInstr(child, ctx);`. Only once `AlgoGen` is pushed to `main`.           |
-| **Person 3** (program layer) -  Arytonn        | `test/.../codegen/ProgramGenTest.java`           | `codegen/ProgramGen.java`                   | Implement `SPL_PROG`, `P`, `F_DECL`/`F_TYPE` (commented mine via `ctx.scratch()`), `asComment`, `declareUserVars`, `detectCType`.                 |
+| **Person 3** (program layer) - Arytonn          | `test/.../codegen/ProgramGenTest.java`           | `codegen/ProgramGen.java`                   | Implement `SPL_PROG`, `P`, `F_DECL`/`F_TYPE` (commented mine via `ctx.scratch()`), `asComment`, `declareUserVars`, `detectCType`.                 |
 |                                                       |                                                    | `codegen/CodeGenMain.java`                  | Fill in the body: generate body first, then `declarations()`, write the layout from 4.5.                                                                        |
 |                                                       |                                                    | `Main.java`                                 | After the type analyser: call `ProgramGen.detectCType`, create the registry and context, call `CodeGenMain.generate`, write the output file.                  |
 | **Lead** (step 2, after the skeleton is merged) | `tests/resources/codegen/*.spl.txt` (7 programs) |                                               | Fixtures listed in 5.3.                                                                                                                                           |
