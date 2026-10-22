@@ -1,0 +1,1 @@
+#a #b #r : num #sumto ( #n ) { #i #acc : : #i = 0 ; #acc = 0 ; while lesser ( #i #n ) do { #i = add ( #i 1 ) ; #acc = add ( #acc #i ) ; } ; return ( #acc ) } : #a = 4 ; #b = #sumto ( #a ) ; #r = #sumto ( add ( #b 1 ) ) ; print ( #b ) ; print "," ; print ( #r ) ; $ 
