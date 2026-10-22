@@ -1,0 +1,1 @@
+#x #y : num #f ( #n ) { : num #g ( #m ) { #k #i : : #k = 0 ; #i = 0 ; while lesser ( #i #m ) do { #k = add ( #k 2 ) ; #i = add ( #i 1 ) ; } ; return ( #k ) } : return ( add ( #g ( #n ) 1 ) ) } : #x = #f ( 3 ) ; #y = #f ( #x ) ; print ( #x ) ; print "," ; print ( #y ) ; $ 

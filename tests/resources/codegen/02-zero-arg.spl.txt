@@ -1,0 +1,1 @@
+#x : num #seven ( ) { : : return ( 7 ) } : #x = #seven ( ) ; print ( #x ) ; print "," ; print ( #seven ( ) ) ; $ 

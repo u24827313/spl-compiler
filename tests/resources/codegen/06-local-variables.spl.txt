@@ -1,0 +1,1 @@
+#r : void #show ( #n ) { #t : : #t = mul ( #n 3 ) ; print ( #t ) ; print "," ; return } num #twice ( #n ) { #t : : #t = add ( #n #n ) ; return ( #t ) } : #r = #twice ( 5 ) ; #show ( #r ) ; #show ( 2 ) ; $ 

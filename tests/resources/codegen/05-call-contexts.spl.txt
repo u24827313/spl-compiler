@@ -1,0 +1,1 @@
+#a #b : num #sq ( #n ) { : : return ( mul ( #n #n ) ) } : #a = add ( #sq ( 2 ) #sq ( 3 ) ) ; print ( #a ) ; print "," ; if larger ( #sq ( 3 ) 8 ) then { print "big" ; } else { print "small" ; } ; print "," ; #b = #sq ( #sq ( 2 ) ) ; print ( #b ) ; $ 

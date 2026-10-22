@@ -1,0 +1,1 @@
+: void #hello ( ) { : : print "hi" ; print ( 7 ) ; return } : #hello ( ) ; #hello ( ) ; $ 
