@@ -2,10 +2,14 @@ package spl.codegen;
 
 import org.junit.jupiter.api.Test;
 import spl.lexer.Lexer;
+import spl.lexer.Token;
 import spl.parser.Parser;
+import spl.semantic.SemanticAnalyser;
+import spl.semantic.SymbolTable;
 import spl.tree.Node;
 import spl.tree.SyntaxTree;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +24,9 @@ class AlgoGenTest {
     void translatesEpsilonAlgoWithoutAllocatingTemporariesOrLabels() {
         CodeGenContext context = context();
 
-        assertEquals("/* end */\n", AlgoGen.transAlgo(node("ALGO"), context));
+        Node epsilonAlgo = node("ALGO");
+        String epsilonCode = AlgoGen.transAlgo(epsilonAlgo, context);
+        assertEquals("/* end */\n", epsilonCode);
         assertEquals("/* end */\n", translate(": : $ "));
         assertEquals("", context.declarations());
         assertEquals("t1", context.newVar());
@@ -45,10 +51,14 @@ class AlgoGenTest {
 
     @Test
     void canTranslateAParsedNestedAlgoSubtreeDirectly() {
-        Node mainAlgo = find(parse(": : nop ; nop ; $ ").getRoot(), "ALGO");
+        SyntaxTree tree = parse(": : nop ; nop ; $ ");
+        Node root = tree.getRoot();
+        Node mainAlgo = find(root, "ALGO");
         Node nestedAlgo = mainAlgo.getChildren().get(2);
+        CodeGenContext context = context();
 
-        assertEquals("/* nop */\n/* end */\n", AlgoGen.transAlgo(nestedAlgo, context()));
+        String generated = AlgoGen.transAlgo(nestedAlgo, context);
+        assertEquals("/* nop */\n/* end */\n", generated);
     }
 
     @Test
@@ -68,8 +78,14 @@ class AlgoGenTest {
     @Test
     void nopAndCommentDoNotConsumeTemporaryOrLabelNames() {
         CodeGenContext context = context();
-        Node algo = node("ALGO", node("INSTR", node("nop")), node(";"), node("ALGO",
-                node("INSTR", node("comment"), node("\"text\"")), node(";"), node("ALGO")));
+        Node nopToken = node("nop");
+        Node nopInstruction = node("INSTR", nopToken);
+        Node commentToken = node("comment");
+        Node commentText = node("\"text\"");
+        Node commentInstruction = node("INSTR", commentToken, commentText);
+        Node epsilonTail = node("ALGO");
+        Node commentTail = node("ALGO", commentInstruction, node(";"), epsilonTail);
+        Node algo = node("ALGO", nopInstruction, node(";"), commentTail);
 
         AlgoGen.transAlgo(algo, context);
 
@@ -121,22 +137,47 @@ class AlgoGenTest {
     }
 
     @Test
-    void leavesLaterPhaseInstructionsExplicitlyUnimplemented() {
-        UnsupportedOperationException print = assertThrows(UnsupportedOperationException.class,
+    void translatesStringAndTermPrintsThroughOutp() {
+        CodeGenContext context = context();
+        SyntaxTree tree = parse(": : print \"hello.world\" ; print ( 7 ) ; $ ");
+        Node root = tree.getRoot();
+        Node algo = find(root, "ALGO");
+
+        String generated = AlgoGen.transAlgo(algo, context);
+
+        assertEquals("std::cout << \"hello.world\";\n"
+                        + "t1 = 7;\nstd::cout << t1;\n/* end */\n",
+                generated);
+        assertEquals("int t1;\n", context.declarations());
+    }
+
+    @Test
+    void translatesAssignmentsUsingResolvedSymbolIdentityAndRhsFirst() {
+        SyntaxTree tree = parse("#x : : #x = add ( #x 1 ) ; $ ");
+        SemanticAnalyser semanticAnalyser = new SemanticAnalyser();
+        SymbolTable symbols = semanticAnalyser.analyse(tree);
+        CodeGenContext context = new CodeGenContext(symbols, "int");
+        Node algo = find(tree.getRoot(), "ALGO");
+
+        String generated = AlgoGen.transAlgo(algo, context);
+
+        assertEquals("t2 = v1;\nt3 = 1;\nt1 = t2 + t3;\nv1 = t1;\n/* end */\n",
+                generated);
+        assertEquals("int t1;\nint t2;\nint t3;\n", context.declarations());
+    }
+
+    @Test
+    void rejectsMalformedPrintAndAssignmentLayouts() {
+        assertThrows(IllegalArgumentException.class,
                 () -> AlgoGen.transInstr(node("INSTR", node("print"), node("OUTP")), context()));
-        assertTrue(print.getMessage().contains("Phase 2"));
-
-        UnsupportedOperationException assign = assertThrows(UnsupportedOperationException.class,
+        assertThrows(IllegalArgumentException.class,
+                () -> AlgoGen.transInstr(node("INSTR", node("print"),
+                        node("OUTP", node("("), node("TERM", node("5")))), context()));
+        assertThrows(IllegalArgumentException.class,
                 () -> AlgoGen.transInstr(node("INSTR", node("ASSIGN")), context()));
-        assertTrue(assign.getMessage().contains("Phase 2"));
-
-        UnsupportedOperationException branch = assertThrows(UnsupportedOperationException.class,
-                () -> AlgoGen.transInstr(node("INSTR", node("BRANCH")), context()));
-        assertTrue(branch.getMessage().contains("Phase 3"));
-
-        UnsupportedOperationException loop = assertThrows(UnsupportedOperationException.class,
-                () -> AlgoGen.transInstr(node("INSTR", node("LOOP")), context()));
-        assertTrue(loop.getMessage().contains("Phase 4"));
+        assertThrows(IllegalArgumentException.class,
+                () -> AlgoGen.transInstr(node("INSTR", node("ASSIGN",
+                        node("NAME"), node("="), node("TERM", node("1")))), context()));
     }
 
     @Test
@@ -150,12 +191,18 @@ class AlgoGenTest {
     }
 
     private static String translate(String source) {
-        Node mainAlgo = find(parse(source).getRoot(), "ALGO");
-        return AlgoGen.transAlgo(mainAlgo, context());
+        SyntaxTree tree = parse(source);
+        Node root = tree.getRoot();
+        Node mainAlgo = find(root, "ALGO");
+        CodeGenContext context = context();
+        return AlgoGen.transAlgo(mainAlgo, context);
     }
 
     private static SyntaxTree parse(String source) {
-        return new Parser().parse(new Lexer().tokenize(source));
+        Lexer lexer = new Lexer();
+        List<Token> tokens = lexer.tokenize(source);
+        Parser parser = new Parser();
+        return parser.parse(tokens);
     }
 
     private static Node find(Node root, String contents) {
@@ -180,11 +227,12 @@ class AlgoGenTest {
     }
 
     private static Node node(String contents, Node... children) {
-        return node(IDS.incrementAndGet(), contents, children);
+        int nodeId = IDS.incrementAndGet();
+        return node(nodeId, contents, children);
     }
 
-    private static Node node(int id, String contents, Node... children) {
-        Node result = new Node(id, contents);
+    private static Node node(int nodeId, String contents, Node... children) {
+        Node result = new Node(nodeId, contents);
         for (Node child : children) {
             result.addChild(child);
         }
