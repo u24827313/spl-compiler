@@ -92,7 +92,7 @@ public class AlgoGen {
                 return transLoop(first, ctx);
             case CALL:
                 requireChildCount(instr, 1, "CALL must be the only instruction child");
-                throw new UnsupportedOperationException("3b: function call as instruction");
+                return CallGen.transCallInstr(first, ctx);
             default:
                 throw new IllegalArgumentException("Unknown INSTR alternative '" + alternative
                         + "' at node " + instr.getId());

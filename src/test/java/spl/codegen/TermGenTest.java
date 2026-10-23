@@ -12,6 +12,7 @@ import spl.tree.SyntaxTree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TermGenTest {
 
@@ -72,13 +73,18 @@ class TermGenTest {
     }
 
     @Test
-    void leavesFunctionCallsForPhase3b() {
-        Fixture fixture = fixture("1");
-        Node call = node(90_003, "CALL");
-        Node term = node(90_004, "TERM", call);
+    void translatesFunctionCallsThroughTheExistingTermHook() {
+        CallGenTestSupport.AnalysedProgram program = CallGenTestSupport.analyse(
+                ": num #identity ( #value ) { : : return ( #value ) } "
+                        + ": print ( #identity ( 7 ) ) ; $ ");
+        Node call = CallGenTestSupport.findCallByName(program.root(), "#identity");
+        Node term = call.getParent();
 
-        assertThrows(UnsupportedOperationException.class,
-                () -> TermGen.transTerm(term, "result", fixture.context()));
+        String generatedCode = TermGen.transTerm(term, "result", program.context());
+
+        assertTrue(generatedCode.contains(" = 7;\n"));
+        assertTrue(generatedCode.contains(" = v"));
+        assertTrue(generatedCode.endsWith("result = f1t2;\n"));
     }
 
     private static Fixture fixture(String expression) {

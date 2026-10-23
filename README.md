@@ -34,6 +34,14 @@ mvn package               # build spl-compiler.jar with dependencies
 mvn exec:java -Dexec.mainClass=spl.Main -Dexec.args="src/SPL.txt"
 ```
 
+## Phase 3a code generation
+
+Phase 3a translates an `ALGO` subtree into a **C++ fragment**, not a standalone program. `AlgoGen.transAlgo(algo, context)` supports any `ALGO` subtree and emits the main instructions, including print, assignment, branches, and all four `while`/`until` loop forms. `TermGen` and `BoolGen` provide the expression and condition translations.
+
+`AlgoFragmentWriter.render(algo, symbols, cType)` returns hoisted temporary declarations followed by the translated body, using LF for in-process composition. `AlgoFragmentWriter.write(algo, symbols, cType, outputPath)` writes UTF-8 with the specification's ASCII-13 line endings. The caller supplies the numeric C++ type explicitly as `"int"` or `"float"`; Phase 2b currently does not expose a whole-program type-selection API.
+
+The fragment intentionally has no `#include`, user-variable declarations, function definitions, or `main()`. It uses C++ `std::cout`; complete program generation and both forms of function `CALL` remain Phase 3b work. `Main` currently writes `tree.xml`, then runs semantic and type analysis; it does not yet invoke code generation. The native fragment tests wrap the output in a test-only C++ harness and skip when `g++` is unavailable.
+
 ## Project layout
 
 ```

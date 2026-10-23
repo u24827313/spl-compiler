@@ -76,16 +76,11 @@ class AlgoFragmentWriterTest {
     void doesNotCreateOrTruncateOutputWhenTranslationFails() throws Exception {
         Path output = temporaryDirectory.resolve("algo.cpp");
         Files.writeString(output, "preserve me", StandardCharsets.UTF_8);
-        Node call = new Node(400_001, "CALL");
-        Node instr = new Node(400_003, "INSTR");
-        instr.addChild(call);
-        Node algo = new Node(400_002, "ALGO");
-        algo.addChild(instr);
-        algo.addChild(new Node(400_004, ";"));
-        algo.addChild(new Node(400_005, "ALGO"));
+        Node malformedAlgo = new Node(400_002, "ALGO");
+        malformedAlgo.addChild(new Node(400_003, "INSTR"));
 
-        assertThrows(UnsupportedOperationException.class,
-                () -> AlgoFragmentWriter.write(algo, null, "int", output));
+        assertThrows(IllegalArgumentException.class,
+                () -> AlgoFragmentWriter.write(malformedAlgo, null, "int", output));
         String existingOutput = Files.readString(output, StandardCharsets.UTF_8);
         assertEquals("preserve me", existingOutput);
     }

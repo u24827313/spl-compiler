@@ -181,13 +181,17 @@ class AlgoGenTest {
     }
 
     @Test
-    void reportsStatementCallsAsDeferredToPhase3b() {
-        UnsupportedOperationException error = assertThrows(UnsupportedOperationException.class,
-                () -> AlgoGen.transInstr(node("INSTR", node("CALL")), context()));
-        assertTrue(error.getMessage().contains("3b"));
+    void translatesStatementCallsThroughTheRegistryBackedContext() {
+        CallGenTestSupport.AnalysedProgram program = CallGenTestSupport.analyse(
+                ": void #show ( ) { : : print \"inside\" ; return } "
+                        + ": #show ( ) ; $ ");
+        Node mainProgram = CallGenTestSupport.directChild(program.root(), "P");
+        Node mainAlgo = CallGenTestSupport.directChild(mainProgram, "ALGO");
 
-        Node algo = node("ALGO", node("INSTR", node("CALL")), node(";"), node("ALGO"));
-        assertThrows(UnsupportedOperationException.class, () -> AlgoGen.transAlgo(algo, context()));
+        String generatedCode = AlgoGen.transAlgo(mainAlgo, program.context());
+
+        assertTrue(generatedCode.contains("std::cout << \"inside\";\n"));
+        assertTrue(generatedCode.endsWith("/* end */\n"));
     }
 
     private static String translate(String source) {
