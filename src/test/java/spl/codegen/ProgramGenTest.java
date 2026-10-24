@@ -120,20 +120,20 @@ class ProgramGenTest {
     }
 
     @Test
-    void completeProgramWriterUsesAscii13AfterStatementSemicolons() throws Exception {
+    void completeProgramWriterUsesLfAfterStatementSemicolons() throws Exception {
         Fixture fixture = fixture(": : print ( 7 ) ; $ ");
-        Path output = directory.resolve("ascii13.cpp");
+        Path output = directory.resolve("lf.cpp");
 
         CodeGenMain.generate(fixture.root(), fixture.symbols(), output.toString());
 
         byte[] generated = Files.readAllBytes(output);
         boolean foundSemicolon = false;
         for (int i = 0; i < generated.length; i++) {
-            assertFalse(generated[i] == '\n', "generated file contains an LF line ending");
+            assertFalse(generated[i] == '\r', "generated file contains a carriage return at byte " + i);
             if (generated[i] == ';') {
                 foundSemicolon = true;
-                assertTrue(i + 1 < generated.length && generated[i + 1] == '\r',
-                        "semicolon at byte " + i + " is not followed by ASCII 13");
+                assertTrue(i + 1 < generated.length && generated[i + 1] == '\n',
+                        "semicolon at byte " + i + " is not followed by a line break");
             }
         }
         assertTrue(foundSemicolon);

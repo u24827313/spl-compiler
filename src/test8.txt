@@ -1,0 +1,1 @@
+#r : num #inc2 ( #n ) { : num #inc ( #m ) { : : return ( add ( #m 1 ) ) } : return ( #inc ( #inc ( #n ) ) ) } : #r = #inc2 ( 8 ) ; print ( #r ) ;

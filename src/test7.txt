@@ -1,0 +1,1 @@
+#x #y #z : num #sumto ( #n ) { #s #i : : #s = 0 ; #i = 1 ; while larger ( add ( #n 1 ) #i ) do { #s = add ( #s #i ) ; #i = add ( #i 1 ) ; } ; return ( #s ) } : #x = #sumto ( 3 ) ; #y = add ( #x 1 ) ; #z = #sumto ( #y ) ; print ( #z ) ;
