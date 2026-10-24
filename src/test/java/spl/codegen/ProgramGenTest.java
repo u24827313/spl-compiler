@@ -119,6 +119,26 @@ class ProgramGenTest {
                 () -> ProgramGen.declareUserVars(declaration, new CodeGenContext(empty, "int")));
     }
 
+    @Test
+    void completeProgramWriterUsesAscii13AfterStatementSemicolons() throws Exception {
+        Fixture fixture = fixture(": : print ( 7 ) ; $ ");
+        Path output = directory.resolve("ascii13.cpp");
+
+        CodeGenMain.generate(fixture.root(), fixture.symbols(), output.toString());
+
+        byte[] generated = Files.readAllBytes(output);
+        boolean foundSemicolon = false;
+        for (int i = 0; i < generated.length; i++) {
+            assertFalse(generated[i] == '\n', "generated file contains an LF line ending");
+            if (generated[i] == ';') {
+                foundSemicolon = true;
+                assertTrue(i + 1 < generated.length && generated[i + 1] == '\r',
+                        "semicolon at byte " + i + " is not followed by ASCII 13");
+            }
+        }
+        assertTrue(foundSemicolon);
+    }
+
     @Nested
     @EnabledIfSystemProperty(named = "spl.codegen.integration", matches = "true")
     class Integration {

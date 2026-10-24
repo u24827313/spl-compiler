@@ -25,15 +25,19 @@ public final class AlgoFragmentWriter {
     }
 
     /**
-     * Writes a fragment with UTF-8 encoding and the specification's ASCII-13
-     * line endings. No wrapper, include, or user-variable declarations are added.
-     * Translation completes before the destination is created or truncated.
+     * Writes a fragment with UTF-8 encoding and plain LF line endings. The
+     * specification's ASCII13 meta-symbol means "write a new line", so this
+     * matches the full-program output. No wrapper, include, or user-variable
+     * declarations are added. Translation completes before the destination
+     * is created or truncated.
      */
     public static void write(Node algo, SymbolTable symbols, String cType, Path output) throws IOException {
         String fragment = render(algo, symbols, cType);
-        String normalizedLineFeeds = fragment.replace("\r\n", "\n");
-        String ascii13Lines = normalizedLineFeeds.replace('\n', '\r');
-        Files.writeString(output, ascii13Lines, StandardCharsets.UTF_8);
+        Files.writeString(output, toLfLineEndings(fragment), StandardCharsets.UTF_8);
+    }
+
+    static String toLfLineEndings(String text) {
+        return text.replace("\r\n", "\n").replace('\r', '\n');
     }
 
     private static void requireSupportedType(String cType) {

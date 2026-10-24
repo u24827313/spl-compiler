@@ -31,20 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * Phase 3b end-to-end test. For every tests/resources/codegen/NAME.spl.txt:
- *
- *   1. lexer -> parser -> 2a -> 2b -> CodeGenMain.generate  (writes out.cpp)
- *   2. checks on the generated code: no duplicate labels, no goto to an undefined label
- *   3. g++ out.cpp, run the program
- *   4. compare stdout with NAME.expected.txt, IGNORING ALL WHITESPACE
- *      (print writes no separators, and the padding around print "string"
- *      is up to AlgoGen, so whitespace must not matter)
- *
- * While the generator is unfinished (it throws UnsupportedOperationException
- * with a message starting "TODO") a fixture is reported as SKIPPED, not failed.
- * Run with:  mvn test -Dtest=CodegenE2ETest
- */
+
 class CodeGenE2ETest {
 
     private static final Path FIXTURES = Path.of("tests", "resources", "codegen");
