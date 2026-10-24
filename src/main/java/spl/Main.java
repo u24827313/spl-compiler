@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
 
+import spl.codegen.CodeGenMain;
 import spl.lexer.Lexer;
 import spl.lexer.Token;
 import spl.parser.ParseException;
@@ -23,8 +24,8 @@ import spl.typeanalysis.TypeException;
  */
 public class Main {
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.err.println("Usage: java -jar spl-compiler.jar <SPL.txt>");
+        if (args.length < 1 || args.length > 2) {
+            System.err.println("Usage: java -jar spl-compiler.jar <SPL.txt> [output.cpp]");
             System.exit(1);
         }
 
@@ -39,7 +40,11 @@ public class Main {
             SymbolTable symbols = new SemanticAnalyser().analyse(tree);
             new TypeAnalyser(symbols).analyse(tree.getRoot());
 
-            System.out.println("OK: tree.xml written, semantic analysis passed; type analysis passed.");
+            String outputPath = args.length == 2 ? args[1] : "output.cpp";
+            CodeGenMain.generate(tree.getRoot(), symbols, outputPath);
+
+            System.out.println("OK: tree.xml written, semantic analysis passed; type analysis passed; "
+                    + "code generated: " + outputPath);
 
         } catch (ParseException e) {
             System.err.println("Syntax Error: " + e.getMessage());
