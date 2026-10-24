@@ -97,7 +97,7 @@ class DonovanTypeAnalysisIntegrationTest {
 
         TypeException error = assertThrows(TypeException.class, program::analyse);
 
-        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+        assertEquals("Expected a procedure for a function call used as an instruction, but found a numeric value.",
                 error.getMessage());
         assertEquals("CALL", error.getNode().getContents());
     }
@@ -109,7 +109,7 @@ class DonovanTypeAnalysisIntegrationTest {
 
         TypeException error = assertThrows(TypeException.class, program::analyse);
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
         assertEquals("CALL", error.getNode().getContents());
     }
@@ -121,6 +121,7 @@ class DonovanTypeAnalysisIntegrationTest {
 
         TypeException error = assertThrows(TypeException.class, program::analyse);
 
+        assertEquals("Incompatible numeric operations", error.getDescription());
         assertEquals(MixedNumberPreCheck.CONFLICT_MESSAGE, error.getMessage());
         assertSame(program.root(), error.getNode());
     }
@@ -132,6 +133,7 @@ class DonovanTypeAnalysisIntegrationTest {
 
         TypeException error = assertThrows(TypeException.class, program::analyse);
 
+        assertEquals("Invalid modulo value", error.getDescription());
         assertEquals(MixedNumberPreCheck.DECIMAL_WITH_MOD_MESSAGE, error.getMessage());
         assertEquals("1.5", error.getNode().getContents());
     }

@@ -66,10 +66,16 @@ class CallGenTest {
                 ": void #show ( #value ) { : : print ( #value ) ; return } : #show ( ) ; $ ");
         Node call = CallGenTestSupport.findCallByName(program.root(), "#show");
 
-        IllegalArgumentException failure = assertThrows(IllegalArgumentException.class,
-                () -> CallGen.transCallInstr(call, program.context()));
+        CodeGenerationException failure = assertThrows(
+                CodeGenerationException.class,
+                () -> CallGen.transCallInstr(call, program.context())
+        );
 
-        assertTrue(failure.getMessage().contains("expected 1 arguments but found 0"));
+        assertEquals("Incorrect number of function arguments", failure.getDescription());
+        assertEquals(
+                "The function '#show' expects 1 argument, but this call provides 0 arguments.",
+                failure.getMessage()
+        );
         assertEquals("", program.context().declarations());
     }
 

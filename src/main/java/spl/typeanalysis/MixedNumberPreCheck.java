@@ -3,8 +3,10 @@ package spl.typeanalysis;
 import spl.tree.Node;
 
 public class MixedNumberPreCheck {
-    public static final String CONFLICT_MESSAGE = "A float-integer-conflict might perhaps be possible";
-    public static final String DECIMAL_WITH_MOD_MESSAGE = "A NUM with a decimal dot is not allowed in a program that uses mod";
+    public static final String CONFLICT_MESSAGE = "This program uses both 'mod' and 'div', "
+            + "but these operations require incompatible numeric modes.";
+    public static final String DECIMAL_WITH_MOD_MESSAGE = "A decimal number cannot be used "
+            + "in a program that uses 'mod'.";
 
     private final TypeContext ctx;
 
@@ -24,10 +26,18 @@ public class MixedNumberPreCheck {
         scan(root);
  
         if (hasMod && hasDiv) {
-            throw ctx.error(root, CONFLICT_MESSAGE);
+            throw ctx.error(
+                    root,
+                    TypeErrorType.INCOMPATIBLE_NUMERIC_OPERATIONS,
+                    CONFLICT_MESSAGE
+            );
         }
         if (hasMod && firstDecimalNum != null) {
-            throw ctx.error(firstDecimalNum, DECIMAL_WITH_MOD_MESSAGE);
+            throw ctx.error(
+                    firstDecimalNum,
+                    TypeErrorType.INVALID_MODULO_VALUE,
+                    DECIMAL_WITH_MOD_MESSAGE
+            );
         }
     }
  

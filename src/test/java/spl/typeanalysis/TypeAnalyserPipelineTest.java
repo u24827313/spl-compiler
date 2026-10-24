@@ -75,7 +75,8 @@ class TypeAnalyserPipelineTest {
         TypeException error = assertThrows(TypeException.class,
             () -> new TypeAnalyser(symbols).analyse(tree.getRoot()));
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Incompatible types", error.getDescription());
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
     }
 

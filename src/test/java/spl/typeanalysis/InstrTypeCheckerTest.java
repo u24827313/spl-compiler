@@ -133,7 +133,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(output));
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
         assertSame(call, error.getNode());
     }
@@ -145,7 +145,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(output));
 
-        assertEquals("Type error in rule OUTP -> ( TERM ): expected numeric but found boolean",
+        assertEquals("Expected a numeric value for a print expression, but found a boolean value.",
                 error.getMessage());
         assertSame(booleanExpression, error.getNode());
     }
@@ -227,7 +227,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(assignment));
 
-        assertEquals("Type error in rule ASSIGN -> NAME = TERM: expected numeric but found unknown",
+        assertEquals("Expected a numeric value for an assignment, but found a value with an unknown type.",
                 error.getMessage());
         assertSame(name, error.getNode());
         assertEquals(Type.UNKNOWN, ctx.nameType("#missing"));
@@ -240,7 +240,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(assignment));
 
-        assertEquals("Type error in rule ASSIGN -> NAME = TERM: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for an assignment, but found a procedure.",
                 error.getMessage());
         assertSame(name, error.getNode());
         assertEquals(Type.PROCEDURE, ctx.nameType("#procedure"));
@@ -253,7 +253,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(assignment));
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
         assertSame(call, error.getNode());
         assertEquals(Type.NUMERIC, ctx.nameType("#x"));
@@ -266,7 +266,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(assignment));
 
-        assertEquals("Type error in rule ASSIGN -> NAME = TERM: expected numeric but found boolean",
+        assertEquals("Expected a numeric value for an assignment, but found a boolean value.",
                 error.getMessage());
         assertSame(booleanExpression, error.getNode());
     }
@@ -383,7 +383,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(instruction));
 
-        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+        assertEquals("Expected a procedure for a function call used as an instruction, but found a numeric value.",
                 error.getMessage());
         assertSame(call, error.getNode());
     }
@@ -396,7 +396,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(instruction));
 
-        assertEquals("CALL requires a numeric function or procedure, but found unknown",
+        assertEquals("The name '#missing' cannot be called because it has type 'unknown'. Only numeric functions and procedures can be called.",
                 error.getMessage());
         assertSame(name, error.getNode());
     }
@@ -410,7 +410,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(instruction));
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
         assertSame(invalidArgumentCall, error.getNode());
     }
@@ -466,9 +466,10 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
 
-        assertEquals("Type error in rule BRANCH -> if BOOL then { ALGO } else { ALGO }: "
-                        + "expected boolean but found numeric",
-                error.getMessage());
+        assertEquals(
+                "Expected a boolean value for a branch condition or body, but found a numeric value.",
+                error.getMessage()
+        );
         assertSame(condition, error.getNode());
     }
 
@@ -481,7 +482,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
         assertSame(invalidCall, error.getNode());
     }
@@ -494,7 +495,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
 
-        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+        assertEquals("Expected a procedure for a function call used as an instruction, but found a numeric value.",
                 error.getMessage());
         assertSame(invalidCall, error.getNode());
     }
@@ -510,7 +511,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
 
-        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+        assertEquals("Expected a procedure for a function call used as an instruction, but found a numeric value.",
                 error.getMessage());
         assertSame(invalidCall, error.getNode());
         assertEquals(Type.BOOLEAN, ctx.typeOf(condition));
@@ -527,7 +528,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(branch));
 
-        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+        assertEquals("Expected a procedure for a function call used as an instruction, but found a numeric value.",
                 error.getMessage());
         assertSame(invalidCall, error.getNode());
         assertEquals(Type.OK, ctx.typeOf(firstInstruction));
@@ -592,14 +593,13 @@ class InstrTypeCheckerTest {
     void rejectsNumericConditionInBothLoopLayouts(boolean prefix) {
         Node condition = term("1");
         Node loop = loop(prefix, loopCondition("while"), condition, node("ALGO"));
-        String rule = prefix
-                ? "LOOP -> COND BOOL do { ALGO }"
-                : "LOOP -> do { ALGO } COND BOOL";
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
 
-        assertEquals("Type error in rule " + rule + ": expected boolean but found numeric",
-                error.getMessage());
+        assertEquals(
+                "Expected a boolean value for a loop condition or body, but found a numeric value.",
+                error.getMessage()
+        );
         assertSame(condition, error.getNode());
     }
 
@@ -613,7 +613,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
 
-        assertEquals("Type error in rule TERM -> CALL: expected numeric but found procedure",
+        assertEquals("Expected a numeric value for a numeric expression, but found a procedure.",
                 error.getMessage());
         assertSame(invalidCall, error.getNode());
     }
@@ -627,7 +627,7 @@ class InstrTypeCheckerTest {
 
         TypeException error = assertThrows(TypeException.class, () -> ctx.check(loop));
 
-        assertEquals("Type error in rule INSTR -> CALL: expected procedure but found numeric",
+        assertEquals("Expected a procedure for a function call used as an instruction, but found a numeric value.",
                 error.getMessage());
         assertSame(invalidCall, error.getNode());
     }

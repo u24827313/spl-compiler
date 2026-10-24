@@ -180,15 +180,66 @@ public class TypeContext {
     // Error helpers
     // ------------------------------------------------------------------
 
-    public TypeException error(Node n, String message) {
-        return new TypeException(message, n);
+    public TypeException error(Node node, String message) {
+        return new TypeException(TypeErrorType.INTERNAL_ANALYSIS_ERROR, message, node);
     }
 
-    /** Throws unless actual == expected. "rule" names the grammar rule for the message. */
-    public void require(Node n, Type actual, Type expected, String rule) {
-        if (actual != expected) {
-            throw error(n, "Type error in rule " + rule + ": expected "
-                    + expected.label() + " but found " + actual.label());
+    public TypeException error(Node node, TypeErrorType errorType, String message) {
+        return new TypeException(errorType, message, node);
+    }
+
+    /** Throws unless the actual type matches the expected type. */
+    public void require(Node node, Type actual, Type expected, String rule) {
+        if (actual == expected) {
+            return;
         }
+
+        String expectedType = describeType(expected);
+        String actualType = describeType(actual);
+        String context = describeRule(rule);
+        String message = "Expected " + expectedType + " for " + context
+                + ", but found " + actualType + ".";
+        throw error(node, TypeErrorType.INCOMPATIBLE_TYPES, message);
+    }
+
+    private static String describeRule(String rule) {
+        if (rule.startsWith("TERM ->")) {
+            return "a numeric expression";
+        }
+        if (rule.startsWith("BOOL ->")) {
+            return "a boolean expression";
+        }
+        if (rule.startsWith("INPUT ->")) {
+            return "a function argument";
+        }
+        if (rule.equals("INSTR -> CALL")) {
+            return "a function call used as an instruction";
+        }
+        if (rule.startsWith("ASSIGN ->")) {
+            return "an assignment";
+        }
+        if (rule.startsWith("OUTP ->")) {
+            return "a print expression";
+        }
+        if (rule.startsWith("BRANCH ->")) {
+            return "a branch condition or body";
+        }
+        if (rule.startsWith("LOOP ->")) {
+            return "a loop condition or body";
+        }
+        if (rule.startsWith("F_TYPE")) {
+            return "the return value of a numeric function";
+        }
+        return "this program construct";
+    }
+
+    private static String describeType(Type type) {
+        return switch (type) {
+            case NUMERIC -> "a numeric value";
+            case BOOLEAN -> "a boolean value";
+            case PROCEDURE -> "a procedure";
+            case UNKNOWN -> "a value with an unknown type";
+            case OK -> "a valid program construct";
+        };
     }
 }

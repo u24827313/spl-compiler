@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.util.List;
 
 import spl.codegen.CodeGenMain;
+import spl.codegen.CodeGenerationException;
 import spl.lexer.Lexer;
 import spl.lexer.Token;
 import spl.parser.ParseException;
@@ -58,7 +59,10 @@ public class Main {
             System.err.println(DiagnosticFormatter.formatSemanticError(e));
             System.exit(1);
         } catch (TypeException e) {
-            System.err.println("Type Error: " + e.getMessage());
+            System.err.println(DiagnosticFormatter.formatTypeError(e));
+            System.exit(1);
+        } catch (CodeGenerationException e) {
+            System.err.println(DiagnosticFormatter.formatCodeGenerationError(e));
             System.exit(1);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());

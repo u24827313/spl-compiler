@@ -141,8 +141,9 @@ public class ExprTypeChecker {
         Type functionType = ctx.check(name);
 
         if (functionType != Type.NUMERIC && functionType != Type.PROCEDURE) {
-            throw ctx.error(name, "CALL requires a numeric function or procedure, but found "
-                + functionType.label());
+            String message = "The name '" + ctx.text(name) + "' cannot be called because it has type '"
+                    + functionType.label() + "'. Only numeric functions and procedures can be called.";
+            throw ctx.error(name, TypeErrorType.INVALID_FUNCTION_USE, message);
         }
 
         return functionType;

@@ -138,10 +138,20 @@ public class CallGen {
         int expectedCount = function.paramNameNodes.size();
         int actualCount = argumentTerms.size();
         if (expectedCount != actualCount) {
-            throw new IllegalArgumentException("Arity mismatch for function " + function.uniqueName
-                    + " at CALL node " + call.getId() + ": expected " + expectedCount
-                    + " arguments but found " + actualCount);
+            String functionName = call.getChildren().get(0).getContents();
+            String expectedArguments = describeArgumentCount(expectedCount);
+            String actualArguments = describeArgumentCount(actualCount);
+            String message = "The function '" + functionName + "' expects " + expectedArguments
+                    + ", but this call provides " + actualArguments + ".";
+            throw new CodeGenerationException(message, call);
         }
+    }
+
+    private static String describeArgumentCount(int count) {
+        if (count == 1) {
+            return "1 argument";
+        }
+        return count + " arguments";
     }
 
     private static Node directChild(Node parent, String expectedKind, String parentDescription) {
