@@ -7,17 +7,16 @@ class SemanticExceptionTest {
 
     @Test
     void preservesErrorMessageAndNodeId() {
-        SemanticException exception =
-            new SemanticException("Undeclared function '#foo'", 42);
+        SemanticException exception = new SemanticException(
+                SemanticErrorType.UNDECLARED_FUNCTION,
+                "The function '#foo' has not been declared in the current scope.",
+                42
+        );
 
         assertEquals(42, exception.getNodeId());
 
-        assertTrue(
-            exception.getMessage().contains("Undeclared function '#foo'")
-        );
-
-        assertTrue(
-            exception.getMessage().contains("node 42")
-        );
+        assertEquals("Undeclared function", exception.getDescription());
+        assertTrue(exception.getMessage().contains("#foo"));
+        assertFalse(exception.getMessage().contains("node 42"));
     }
 }

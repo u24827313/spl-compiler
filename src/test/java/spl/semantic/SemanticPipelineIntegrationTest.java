@@ -169,7 +169,6 @@ class SemanticPipelineIntegrationTest {
         assertNotNull(offender, "Error must identify a node in the parsed tree: " + rule);
         assertEquals(name, offender.getContents(), rule);
         assertEquals(parentKind, offender.getParent().getContents(), rule);
-        assertTrue(error.getMessage().contains("node " + error.getNodeId()), rule);
     }
 
     private static Stream<Arguments> invalidPrograms() {

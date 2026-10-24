@@ -55,7 +55,7 @@ public class Main {
             System.err.println(DiagnosticFormatter.formatLexicalError(e, source));
             System.exit(1);
         } catch (SemanticException e) {
-            System.err.println("Semantic Error: " + e.getMessage());
+            System.err.println(DiagnosticFormatter.formatSemanticError(e));
             System.exit(1);
         } catch (TypeException e) {
             System.err.println("Type Error: " + e.getMessage());

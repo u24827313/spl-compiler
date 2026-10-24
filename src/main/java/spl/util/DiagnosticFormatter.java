@@ -3,6 +3,7 @@ package spl.util;
 import org.fusesource.jansi.Ansi;
 import spl.lexer.Lexer;
 import spl.parser.ParseException;
+import spl.semantic.SemanticException;
 
 /** Formats concise, source-aware diagnostics for command-line users. */
 public final class DiagnosticFormatter {
@@ -50,6 +51,24 @@ public final class DiagnosticFormatter {
                 explanation,
                 coloursEnabled
         );
+    }
+
+    public static String formatSemanticError(SemanticException error) {
+        return formatSemanticError(error, COLOURS_ENABLED);
+    }
+
+    static String formatSemanticError(SemanticException error, boolean coloursEnabled) {
+        String errorHeading = boldRed("Semantic error", coloursEnabled);
+        String message = error.getDescription() + " : " + error.getMessage();
+        String explanation = highlightLastQuotedText(message, coloursEnabled);
+        String informationLabel = magenta("INFO", coloursEnabled);
+        String nodeInformation = "[" + informationLabel + "] Node ID: " + error.getNodeId();
+
+        return errorHeading
+                + "\n\n> "
+                + explanation
+                + "\n\n"
+                + nodeInformation;
     }
 
     private static String formatError(
@@ -147,5 +166,13 @@ public final class DiagnosticFormatter {
         }
 
         return Ansi.ansi().fg(Ansi.Color.CYAN).a(text).reset().toString();
+    }
+
+    private static String magenta(String text, boolean coloursEnabled) {
+        if (!coloursEnabled) {
+            return text;
+        }
+
+        return Ansi.ansi().fg(Ansi.Color.MAGENTA).a(text).reset().toString();
     }
 }

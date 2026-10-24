@@ -61,7 +61,8 @@ class FunctionCheckerTest {
         );
 
         assertEquals(2, exception.getNodeId());
-        assertTrue(exception.getMessage().contains("Duplicate function"));
+        assertEquals("Duplicate function declaration", exception.getDescription());
+        assertTrue(exception.getMessage().contains("already been declared"));
     }
 
     @Test
@@ -85,7 +86,8 @@ class FunctionCheckerTest {
         );
 
         assertEquals(2, exception.getNodeId());
-        assertTrue(exception.getMessage().contains("clashes with variable"));
+        assertEquals("Name conflict", exception.getDescription());
+        assertTrue(exception.getMessage().contains("already used by a variable"));
     }
 
     @Test
@@ -114,7 +116,8 @@ class FunctionCheckerTest {
         );
 
         assertEquals(5, exception.getNodeId());
-        assertTrue(exception.getMessage().contains("not declared"));
+        assertEquals("Undeclared function", exception.getDescription());
+        assertTrue(exception.getMessage().contains("has not been declared"));
     }
 
     @Test

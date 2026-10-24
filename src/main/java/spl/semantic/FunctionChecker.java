@@ -8,14 +8,16 @@ public class FunctionChecker {
 
         if(scope.getFunc(name) != null){
             throw new SemanticException(
-                "Duplicate function declaration: '" + name + "'",
-                nameNode.getId()       
+                SemanticErrorType.DUPLICATE_FUNCTION,
+                "The function '" + name + "' has already been declared in this scope.",
+                nameNode.getId()
             );
         }
 
         if(scope.getVar(name) != null) {
             throw new SemanticException(
-                "Function name clashes with variable: '" + name + "'",
+                SemanticErrorType.NAME_CONFLICT,
+                "The name '" + name + "' is already used by a variable in this scope.",
                 nameNode.getId()
             );
         }
@@ -46,7 +48,8 @@ public class FunctionChecker {
 
         if(entry == null) {
             throw new SemanticException(
-                "Function '" + name + "' is not declared in the current scope",
+                SemanticErrorType.UNDECLARED_FUNCTION,
+                "The function '" + name + "' has not been declared in the current scope.",
                 nameNode.getId()
             );
         }

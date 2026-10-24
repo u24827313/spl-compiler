@@ -130,7 +130,11 @@ class VariableCheckerTest {
     void rejectsADuplicateVariableWithoutReplacingOrRenamingTheFirst() {
         checker.declareVariable(new Node(1, "#x"), table);
 
-        expectError(2, "duplicate variable", () -> checker.declareVariable(new Node(2, "#x"), table));
+        SemanticException error = expectError(
+                2,
+                () -> checker.declareVariable(new Node(2, "#x"), table)
+        );
+        assertEquals("Duplicate variable declaration", error.getDescription());
 
         assertSame(table.getEntry(1), table.lookupVar("#x"));
         assertNull(table.getEntry(2));
@@ -143,8 +147,12 @@ class VariableCheckerTest {
         table.pushScope(1);
         checker.declareParameter(new Node(1, "#x"), table);
 
-        SemanticException error = expectError(2, "mask", () -> checker.declareVariable(new Node(2, "#x"), table));
+        SemanticException error = expectError(
+                2,
+                () -> checker.declareVariable(new Node(2, "#x"), table)
+        );
 
+        assertEquals("Invalid local variable name", error.getDescription());
         assertTrue(error.getMessage().toLowerCase(Locale.ROOT).contains("parameter"));
         assertFalse(error.getMessage().toLowerCase(Locale.ROOT).contains("duplicate variable"));
         assertSame(table.getEntry(1), table.lookupVar("#x"));
@@ -158,8 +166,12 @@ class VariableCheckerTest {
         SymbolEntry function = new SymbolEntry("#helper", SymbolEntry.Kind.FUNC, 0, 1, "f1");
         table.currentScope().putFunc("#helper", function);
 
-        SemanticException error = expectError(2, "clash", () -> checker.declareVariable(new Node(2, "#helper"), table));
+        SemanticException error = expectError(
+                2,
+                () -> checker.declareVariable(new Node(2, "#helper"), table)
+        );
 
+        assertEquals("Name conflict", error.getDescription());
         assertTrue(error.getMessage().toLowerCase(Locale.ROOT).contains("function"));
         assertSame(function, table.lookupFunc("#helper"));
         assertNull(table.getEntry(2));
@@ -172,7 +184,11 @@ class VariableCheckerTest {
         table.pushScope(1);
         checker.declareParameter(new Node(1, "#arg"), table);
 
-        expectError(2, "duplicate", () -> checker.declareParameter(new Node(2, "#arg"), table));
+        SemanticException error = expectError(
+                2,
+                () -> checker.declareParameter(new Node(2, "#arg"), table)
+        );
+        assertEquals("Duplicate parameter declaration", error.getDescription());
 
         assertSame(table.getEntry(1), table.lookupVar("#arg"));
         assertNull(table.getEntry(2));
@@ -221,10 +237,4 @@ class VariableCheckerTest {
         return error;
     }
 
-    private static SemanticException expectError(int nodeId, String messageFragment, Executable action) {
-        SemanticException error = expectError(nodeId, action);
-        assertTrue(error.getMessage().toLowerCase(Locale.ROOT).contains(messageFragment),
-                "Expected semantic error to contain '" + messageFragment + "' but was: " + error.getMessage());
-        return error;
-    }
 }

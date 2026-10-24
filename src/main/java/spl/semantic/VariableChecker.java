@@ -4,26 +4,26 @@ import spl.tree.Node;
 
 public class VariableChecker {
 
-    private void checkParamConflict(Node nameNode , Scope scope){
+    private void checkParamConflict(Node nameNode, Scope scope) {
         String name = nameNode.getContents();
-        SymbolEntry exisiting = scope.getVar(name) ; 
+        SymbolEntry existingVariable = scope.getVar(name);
 
-        if (exisiting == null) {
-            if (!scope.hasName(name)){
-                return ;
-            }
-            throw new SemanticException("Paramter name conflicts with function: '" + name + "'" , nameNode.getId());
+        if (existingVariable == null && !scope.hasName(name)) {
+            return;
         }
 
-        String message = "" ;
-        if (exisiting.kind == SymbolEntry.Kind.PARAM){
-            message = "Duplicate paramater declaration: '" + name + "'" ;
-        }
-        else {
-            message = "Parameter name clashes with variable: '" + name + "'" ;
+        if (existingVariable == null) {
+            String message = "The name '" + name + "' is already used by a function in this scope.";
+            throw new SemanticException(SemanticErrorType.NAME_CONFLICT, message, nameNode.getId());
         }
 
-        throw new SemanticException(message,nameNode.getId()) ; 
+        if (existingVariable.kind == SymbolEntry.Kind.PARAM) {
+            String message = "The parameter '" + name + "' has already been declared in this function.";
+            throw new SemanticException(SemanticErrorType.DUPLICATE_PARAMETER, message, nameNode.getId());
+        }
+
+        String message = "The name '" + name + "' is already used by a variable in this scope.";
+        throw new SemanticException(SemanticErrorType.NAME_CONFLICT, message, nameNode.getId());
     }
 
     void declareParameter(Node nameNode, SymbolTable table) {
@@ -32,29 +32,29 @@ public class VariableChecker {
         declare(nameNode, table, SymbolEntry.Kind.PARAM);
     }
 
-    private void checkVarConflict(Node nameNode , Scope scope) { 
+    private void checkVarConflict(Node nameNode, Scope scope) {
         String name = nameNode.getContents();
-
-        if (!scope.hasName(name)){
-            return ;
+        if (!scope.hasName(name)) {
+            return;
         }
 
-        SymbolEntry existing = scope.getVar(name);
-        String message = "" ;
-
-        if (existing == null){
-            message = "Variable name clashes with function: '" + name + "'";
-        }
-        else if (existing.kind == SymbolEntry.Kind.PARAM) {
-            message = "Local variable name masks parameter: '" + name + "'" ;
-        }
-        else {
-            message = "Duplicate variable declaration: '" + name + "'" ;
+        SymbolEntry existingVariable = scope.getVar(name);
+        if (existingVariable == null) {
+            String message = "The name '" + name + "' is already used by a function in this scope.";
+            throw new SemanticException(SemanticErrorType.NAME_CONFLICT, message, nameNode.getId());
         }
 
-        int nodeId = nameNode.getId();
-        throw new SemanticException(message, nodeId);
-        
+        if (existingVariable.kind == SymbolEntry.Kind.PARAM) {
+            String message = "The local variable '" + name + "' cannot use the same name as a parameter.";
+            throw new SemanticException(
+                    SemanticErrorType.INVALID_LOCAL_VARIABLE_NAME,
+                    message,
+                    nameNode.getId()
+            );
+        }
+
+        String message = "The variable '" + name + "' has already been declared in this scope.";
+        throw new SemanticException(SemanticErrorType.DUPLICATE_VARIABLE, message, nameNode.getId());
     }
 
     void declareVariable(Node nameNode, SymbolTable table) {
@@ -67,7 +67,12 @@ public class VariableChecker {
         String name = nameNode.getContents() ;
         SymbolEntry entry = table.lookupVar(name);
         if (entry == null) {
-            throw new SemanticException("Undeclared variable: '" + nameNode.getContents() + "'", nameNode.getId());
+            String message = "The variable '" + name + "' has not been declared in an accessible scope.";
+            throw new SemanticException(
+                    SemanticErrorType.UNDECLARED_VARIABLE,
+                    message,
+                    nameNode.getId()
+            );
         }
         table.record(nameNode.getId(), entry);
     }

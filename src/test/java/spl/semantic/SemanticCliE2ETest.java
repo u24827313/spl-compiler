@@ -43,9 +43,10 @@ class SemanticCliE2ETest {
         CliResult result = runMain(directory, ": : #missing = 5 ; $ ");
 
         assertNotEquals(0, result.exitCode());
-        assertTrue(result.stderr().contains("Semantic Error"), result.stderr());
+        assertTrue(result.stderr().contains("Semantic error"), result.stderr());
+        assertTrue(result.stderr().contains("Undeclared variable :"), result.stderr());
         assertTrue(result.stderr().contains("#missing"), result.stderr());
-        assertTrue(result.stderr().contains("node "), result.stderr());
+        assertTrue(result.stderr().contains("[INFO] Node ID: "), result.stderr());
         assertFalse(result.stdout().contains("semantic analysis passed"));
     }
 

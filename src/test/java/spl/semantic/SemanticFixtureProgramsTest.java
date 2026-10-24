@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SemanticFixtureProgramsTest {
 
@@ -56,7 +55,6 @@ class SemanticFixtureProgramsTest {
         assertNotNull(offender, fixture + ": error node must be in the parsed tree");
         assertEquals(name, offender.getContents(), fixture);
         assertEquals(parentKind, offender.getParent().getContents(), fixture);
-        assertTrue(error.getMessage().contains("node " + error.getNodeId()), fixture);
     }
 
     private static Stream<Arguments> invalidPrograms() {
