@@ -59,12 +59,9 @@ public class InstrParser {
             return instr;
         }
 
-        Token found = ctx.peek();
-
-        throw new ParseException(
-            "Expected an instruction but found '" + found.lexeme() + "' at line "
-            + found.line() + ", column " + found.column()
-        );
+        String foundToken = ctx.peek().lexeme();
+        String message = "Expected an instruction, but found '" + foundToken + "'.";
+        throw ctx.error(message);
     }
 
 
@@ -123,14 +120,10 @@ public class InstrParser {
             return parseCallAfterUdn(ctx, udn);
         }
 
-        Token found = ctx.peek();
-
-        throw new ParseException(
-            "Expected '=' or '(' after '" + udn.lexeme()
-            + "', but found '" + found.lexeme()
-            + "' at line " + found.line()
-            + ", column " + found.column()
-        );
+        String foundToken = ctx.peek().lexeme();
+        String message = "Expected '=' or '(' after '" + udn.lexeme()
+                + "', but found '" + foundToken + "'.";
+        throw ctx.error(message);
     }
 
 

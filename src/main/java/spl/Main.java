@@ -49,7 +49,7 @@ public class Main {
                     + "code generated: " + outputPath);
 
         } catch (ParseException e) {
-            System.err.println("Syntax Error: " + e.getMessage());
+            System.err.println(DiagnosticFormatter.formatSyntaxError(e, source));
             System.exit(1);
         } catch (Lexer.LexException e) {
             System.err.println(DiagnosticFormatter.formatLexicalError(e, source));

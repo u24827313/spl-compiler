@@ -54,7 +54,9 @@ class SemanticCliE2ETest {
         CliResult result = runMain(directory, ": : #x = ; $ ");
 
         assertNotEquals(0, result.exitCode());
-        assertTrue(result.stderr().contains("Syntax Error"), result.stderr());
+        assertTrue(result.stderr().contains("Syntax error"), result.stderr());
+        assertTrue(result.stderr().contains("Line 1, column 10"), result.stderr());
+        assertTrue(result.stderr().contains("Expected a term, but found ';'."), result.stderr());
         assertFalse(Files.exists(result.treeFile()));
     }
 

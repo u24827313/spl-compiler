@@ -252,10 +252,8 @@ public class ExprParser {
     }
 
     private static ParseException unexpected(ParserContext ctx, String expected) {
-        Token found = ctx.peek();
-        return new ParseException(
-            "Expected " + expected + " but found '" + found.lexeme()
-                + "' at line " + found.line() + ", column " + found.column()
-        );
+        String foundToken = ctx.peek().lexeme();
+        String message = "Expected " + expected + ", but found '" + foundToken + "'.";
+        return ctx.error(message);
     }
 }

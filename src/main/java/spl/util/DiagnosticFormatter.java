@@ -2,6 +2,7 @@ package spl.util;
 
 import org.fusesource.jansi.Ansi;
 import spl.lexer.Lexer;
+import spl.parser.ParseException;
 
 /** Formats concise, source-aware diagnostics for command-line users. */
 public final class DiagnosticFormatter {
@@ -16,12 +17,51 @@ public final class DiagnosticFormatter {
     }
 
     static String formatLexicalError(Lexer.LexException error, String source, boolean coloursEnabled) {
-        String errorHeading = boldRed("Lexical error", coloursEnabled);
-        String location = cyan("Line " + error.getLine() + ", column " + error.getColumn(), coloursEnabled);
         String relevantSourceLine = sourceLine(source, error.getLine());
-        String highlightedSourceLine = highlightSourceCharacter(
-                relevantSourceLine, error.getColumn(), coloursEnabled);
-        String explanation = highlightQuotedText(error.getMessage(), coloursEnabled);
+        String highlightedSourceLine = highlightSourceRange(
+                relevantSourceLine, error.getColumn(), 1, coloursEnabled);
+
+        return formatError(
+                "Lexical error",
+                error.getLine(),
+                error.getColumn(),
+                highlightedSourceLine,
+                error.getMessage(),
+                coloursEnabled
+        );
+    }
+
+    public static String formatSyntaxError(ParseException error, String source) {
+        return formatSyntaxError(error, source, COLOURS_ENABLED);
+    }
+
+    static String formatSyntaxError(ParseException error, String source, boolean coloursEnabled) {
+        String relevantSourceLine = sourceLine(source, error.getLine());
+        int tokenLength = error.getOffendingText().length();
+        String highlightedSourceLine = highlightSourceRange(
+                relevantSourceLine, error.getColumn(), tokenLength, coloursEnabled);
+
+        return formatError(
+                "Syntax error",
+                error.getLine(),
+                error.getColumn(),
+                highlightedSourceLine,
+                error.getMessage(),
+                coloursEnabled
+        );
+    }
+
+    private static String formatError(
+            String errorTitle,
+            int line,
+            int column,
+            String highlightedSourceLine,
+            String message,
+            boolean coloursEnabled
+    ) {
+        String errorHeading = boldRed(errorTitle, coloursEnabled);
+        String location = cyan("Line " + line + ", column " + column, coloursEnabled);
+        String explanation = highlightLastQuotedText(message, coloursEnabled);
 
         return errorHeading
                 + "\n"
@@ -50,29 +90,37 @@ public final class DiagnosticFormatter {
         return lines[lineNumber - 1];
     }
 
-    private static String highlightSourceCharacter(String sourceLine, int column, boolean coloursEnabled) {
-        int characterIndex = column - 1;
-        if (characterIndex < 0) {
+    private static String highlightSourceRange(
+            String sourceLine,
+            int column,
+            int length,
+            boolean coloursEnabled
+    ) {
+        int startIndex = column - 1;
+        if (startIndex < 0) {
             return sourceLine;
         }
-        if (characterIndex >= sourceLine.length()) {
+        if (startIndex >= sourceLine.length()) {
             return sourceLine;
         }
 
-        String textBeforeCharacter = sourceLine.substring(0, characterIndex);
-        String highlightedCharacter = sourceLine.substring(characterIndex, characterIndex + 1);
-        String textAfterCharacter = sourceLine.substring(characterIndex + 1);
-        return textBeforeCharacter
-                + boldRed(highlightedCharacter, coloursEnabled)
-                + textAfterCharacter;
+        int endIndex = Math.min(startIndex + length, sourceLine.length());
+        String textBeforeRange = sourceLine.substring(0, startIndex);
+        String highlightedText = sourceLine.substring(startIndex, endIndex);
+        String textAfterRange = sourceLine.substring(endIndex);
+        return textBeforeRange
+                + boldRed(highlightedText, coloursEnabled)
+                + textAfterRange;
     }
 
-    private static String highlightQuotedText(String message, boolean coloursEnabled) {
-        int openingQuote = message.indexOf('\'');
+    private static String highlightLastQuotedText(String message, boolean coloursEnabled) {
         int closingQuote = message.lastIndexOf('\'');
-        boolean hasOpeningQuote = openingQuote >= 0;
-        boolean hasClosingQuote = closingQuote > openingQuote;
-        if (!hasOpeningQuote || !hasClosingQuote) {
+        if (closingQuote < 0) {
+            return message;
+        }
+
+        int openingQuote = message.lastIndexOf('\'', closingQuote - 1);
+        if (openingQuote < 0) {
             return message;
         }
 

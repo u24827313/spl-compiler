@@ -1,12 +1,25 @@
 package spl.parser;
 
-/**
- * Thrown on a syntax error. Per the spec, the message must be meaningful and
- * include hints the user can understand (e.g. "expected ';' after INSTR at
- * line 12, but found 'print'").
- */
+import spl.lexer.Token;
+
+/** Thrown when the parser encounters source that does not match SPL syntax. */
 public class ParseException extends RuntimeException {
-    public ParseException(String message) {
+    private final Token offendingToken;
+
+    public ParseException(String message, Token offendingToken) {
         super(message);
+        this.offendingToken = offendingToken;
+    }
+
+    public int getLine() {
+        return offendingToken.line();
+    }
+
+    public int getColumn() {
+        return offendingToken.column();
+    }
+
+    public String getOffendingText() {
+        return offendingToken.lexeme();
     }
 }

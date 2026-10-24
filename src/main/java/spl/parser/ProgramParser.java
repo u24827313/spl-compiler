@@ -67,7 +67,10 @@ public class ProgramParser {
             node.addChild(ctx.expectLeaf(TokenType.RPAREN, "after return expression"));
             node.addChild(ctx.expectLeaf(TokenType.RBRACE, "after function body"));
         }else{
-            throw new ParseException("Expected 'void or 'num' to start a function declaration, found: '" + ctx.peek().lexeme() + "' at line" + ctx.peek().line());
+            String foundToken = ctx.peek().lexeme();
+            String message = "Expected a function declaration to start with 'void' or 'num', "
+                    + "but found '" + foundToken + "'.";
+            throw ctx.error(message);
         }
 
         return node;
@@ -95,8 +98,10 @@ public class ProgramParser {
         }else if (ctx.check(TokenType.STRING)){
             node.addChild(ctx.advanceLeaf());
         }else{
-            throw new ParseException("Expected '(' or a string literal, found '"
-                    + ctx.peek().lexeme() + "' at line " + ctx.peek().line());
+            String foundToken = ctx.peek().lexeme();
+            String message = "Expected '(' or a string literal after 'print', but found '"
+                    + foundToken + "'.";
+            throw ctx.error(message);
         }
         return node;
     }

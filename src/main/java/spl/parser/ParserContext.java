@@ -29,8 +29,10 @@ public class ParserContext {
 
         
         if (index >= tokens.size()) {
-            throw new ParseException("Unexpected end of token stream while looking ahead by "
-                    + offset + " token(s)");
+            Token currentToken = peek();
+            String message = "Unexpected end of program while looking ahead by "
+                    + offset + " token(s).";
+            throw new ParseException(message, currentToken);
         }
 
         return tokens.get(index);
@@ -41,11 +43,34 @@ public class ParserContext {
 
     public Token expect(spl.lexer.TokenType type, String context) {
         if (!check(type)) {
-            throw new ParseException("Expected " + type + " but found '"
-                    + peek().lexeme() + "' " + context
-                    + " at line " + peek().line() + ", column " + peek().column());
+            String expectedToken = describe(type);
+            String foundToken = peek().lexeme();
+            String message = "Expected " + expectedToken + " " + context
+                    + ", but found '" + foundToken + "'.";
+            throw error(message);
         }
         return advance();
+    }
+
+    public ParseException error(String message) {
+        return new ParseException(message, peek());
+    }
+
+    private static String describe(TokenType type) {
+        return switch (type) {
+            case EOF -> "the end of the program";
+            case COLON -> "':'";
+            case SEMICOLON -> "';'";
+            case LPAREN -> "'('";
+            case RPAREN -> "')'";
+            case LBRACE -> "'{'";
+            case RBRACE -> "'}'";
+            case EQUALS -> "'='";
+            case NUM -> "a number";
+            case USER_DEFINED_NAME -> "a user-defined name";
+            case STRING -> "a string literal";
+            default -> "'" + type.name().toLowerCase().replace("_kw", "") + "'";
+        };
     }
 
     public Node newNode(String contents) {

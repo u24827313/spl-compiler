@@ -424,7 +424,8 @@ class ExprParserTest {
         ParseException error = assertThrows(ParseException.class, () -> ExprParser.parseBool(ctx));
 
         assertTrue(error.getMessage().contains("Expected a boolean expression"));
-        assertTrue(error.getMessage().contains("line 1, column 1"));
+        assertEquals(1, error.getLine());
+        assertEquals(1, error.getColumn());
     }
 
     /** Creates the shared parser state around the exact tokens supplied by a test. */
