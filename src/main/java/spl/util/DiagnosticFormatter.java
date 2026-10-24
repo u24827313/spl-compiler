@@ -16,6 +16,45 @@ public final class DiagnosticFormatter {
     private DiagnosticFormatter() {
     }
 
+    public static String formatInfo(String message) {
+        return formatInfo(message, COLOURS_ENABLED);
+    }
+
+    static String formatInfo(String message, boolean coloursEnabled) {
+        String informationLabel = magenta("INFO", coloursEnabled);
+        return "[" + informationLabel + "] " + message;
+    }
+
+    public static String formatSuccess(String message) {
+        return formatSuccess(message, COLOURS_ENABLED);
+    }
+
+    static String formatSuccess(String message, boolean coloursEnabled) {
+        String successLabel = boldGreen("SUCCESS", coloursEnabled);
+        return "[" + successLabel + "] " + message;
+    }
+
+    public static String formatCliError(String description, String message) {
+        return formatCliError(description, message, COLOURS_ENABLED);
+    }
+
+    static String formatCliError(String description, String message, boolean coloursEnabled) {
+        String errorHeading = boldRed("CLI error", coloursEnabled);
+        String explanation = description + " : " + message;
+        String highlightedExplanation = highlightLastQuotedText(explanation, coloursEnabled);
+        return errorHeading
+                + "\n\n> "
+                + highlightedExplanation;
+    }
+
+    public static String formatUsageError(String description, String message, String usage) {
+        String error = formatCliError(description, message, COLOURS_ENABLED);
+        String formattedUsage = cyan("Usage: " + usage, COLOURS_ENABLED);
+        return error
+                + "\n\n"
+                + formattedUsage;
+    }
+
     public static String formatLexicalError(Lexer.LexException error, String source) {
         return formatLexicalError(error, source, COLOURS_ENABLED);
     }
@@ -274,6 +313,14 @@ public final class DiagnosticFormatter {
         }
 
         return Ansi.ansi().bold().fg(Ansi.Color.RED).a(text).reset().toString();
+    }
+
+    private static String boldGreen(String text, boolean coloursEnabled) {
+        if (!coloursEnabled) {
+            return text;
+        }
+
+        return Ansi.ansi().bold().fg(Ansi.Color.GREEN).a(text).reset().toString();
     }
 
     private static String cyan(String text, boolean coloursEnabled) {

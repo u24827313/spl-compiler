@@ -21,6 +21,20 @@ class DiagnosticFormatterTest {
     private static final int MAXIMUM_ANSI_STYLE_LENGTH = 10;
 
     @Test
+    void formatsCliErrorsAndStatusMessages() {
+        assertEquals("[INFO] Lexical analysis passed",
+                DiagnosticFormatter.formatInfo("Lexical analysis passed", false));
+        assertEquals("[SUCCESS] Compilation completed successfully",
+                DiagnosticFormatter.formatSuccess("Compilation completed successfully", false));
+        assertEquals("CLI error\n\n> Unable to read input file : Could not read 'missing.spl'.",
+                DiagnosticFormatter.formatCliError(
+                        "Unable to read input file",
+                        "Could not read 'missing.spl'.",
+                        false
+                ));
+    }
+
+    @Test
     void formatsLexicalErrorsWithTheSourceLineBeforeTheExplanation() {
         Lexer.LexException error = new Lexer.LexException("Unrecognized character '@'.", 2, 7);
 

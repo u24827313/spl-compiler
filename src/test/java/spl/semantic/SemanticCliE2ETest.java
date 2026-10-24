@@ -23,7 +23,12 @@ class SemanticCliE2ETest {
         CliResult result = runMain(directory, "#x : : #x = 5 ; $ ");
 
         assertEquals(0, result.exitCode(), result.stderr());
-        assertTrue(result.stdout().contains("semantic analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Lexical analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Syntax analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Semantic analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Type analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Code generation passed"));
+        assertTrue(result.stdout().contains("[SUCCESS] Compilation completed successfully"));
         assertTrue(Files.exists(result.treeFile()));
         assertTrue(Files.readString(result.treeFile()).contains("<contents>#x</contents>"));
     }
@@ -34,7 +39,8 @@ class SemanticCliE2ETest {
                 "#x : num #square ( #n ) { : : return ( mul ( #n #n ) ) } : #x = #square ( 2 ) ; $ ");
 
         assertEquals(0, result.exitCode(), result.stderr());
-        assertTrue(result.stdout().contains("semantic analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Semantic analysis passed"));
+        assertTrue(result.stdout().contains("[INFO] Output file written to 'output.cpp'"));
         assertTrue(Files.exists(result.treeFile()));
     }
 
@@ -47,7 +53,7 @@ class SemanticCliE2ETest {
         assertTrue(result.stderr().contains("Undeclared variable :"), result.stderr());
         assertTrue(result.stderr().contains("#missing"), result.stderr());
         assertTrue(result.stderr().contains("[INFO] Node ID: "), result.stderr());
-        assertFalse(result.stdout().contains("semantic analysis passed"));
+        assertFalse(result.stdout().contains("Semantic analysis passed"));
     }
 
     @Test
