@@ -51,7 +51,7 @@ public class ExprParser {
             }
         }
 
-        throw unexpected(ctx, "a term");
+        throw unexpected(ctx, SyntaxErrorType.MISSING_TERM_OR_EXPRESSION, "a term");
     }
 
     public static Node parseBranch(ParserContext ctx) {
@@ -137,7 +137,7 @@ public class ExprParser {
         }
         
 
-        throw unexpected(ctx, "a boolean expression");
+        throw unexpected(ctx, SyntaxErrorType.INVALID_BOOLEAN_EXPRESSION, "a boolean expression");
     }
 
     public static Node parseLoop(ParserContext ctx) {
@@ -175,7 +175,11 @@ public class ExprParser {
             return loop;
         }
 
-        throw unexpected(ctx, "'while', 'until', or 'do' at start of loop");
+        throw unexpected(
+                ctx,
+                SyntaxErrorType.INVALID_POST_TEST_LOOP_CONDITION,
+                "'while', 'until', or 'do' at start of loop"
+        );
     }
 
 
@@ -192,7 +196,7 @@ public class ExprParser {
             }
         }
 
-        throw unexpected(ctx, "'while' or 'until'");
+        throw unexpected(ctx, SyntaxErrorType.INVALID_POST_TEST_LOOP_CONDITION, "'while' or 'until'");
     }
 
     private static Node parseNum(ParserContext ctx) {
@@ -251,9 +255,13 @@ public class ExprParser {
         parent.addChild(ctx.newNode(ctx.expect(type, context).lexeme()));
     }
 
-    private static ParseException unexpected(ParserContext ctx, String expected) {
+    private static ParseException unexpected(
+            ParserContext ctx,
+            SyntaxErrorType errorType,
+            String expected
+    ) {
         String foundToken = ctx.peek().lexeme();
         String message = "Expected " + expected + ", but found '" + foundToken + "'.";
-        return ctx.error(message);
+        return ctx.error(errorType, message);
     }
 }

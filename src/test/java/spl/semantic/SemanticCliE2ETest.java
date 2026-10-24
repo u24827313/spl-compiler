@@ -56,6 +56,7 @@ class SemanticCliE2ETest {
         assertNotEquals(0, result.exitCode());
         assertTrue(result.stderr().contains("Syntax error"), result.stderr());
         assertTrue(result.stderr().contains("Line 1, column 10"), result.stderr());
+        assertTrue(result.stderr().contains("Missing term or expression :"), result.stderr());
         assertTrue(result.stderr().contains("Expected a term, but found ';'."), result.stderr());
         assertFalse(Files.exists(result.treeFile()));
     }

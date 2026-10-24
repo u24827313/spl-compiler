@@ -83,6 +83,7 @@ public class ProgramParserTest {
             () -> ProgramParser.parseFType(ctx)
         );
 
+        assertEquals("Invalid function declaration", ex.getDescription());
         assertTrue(ex.getMessage().contains("void") || ex.getMessage().contains("num"));
     }
 
@@ -161,7 +162,12 @@ public class ProgramParserTest {
         List<Token> tokens = List.of(tok(TokenType.COLON, ":"));
         ParserContext ctx = ctxFrom(tokens);
 
-        assertThrows(ParseException.class, () -> ProgramParser.parseOutp(ctx));
+        ParseException error = assertThrows(
+                ParseException.class,
+                () -> ProgramParser.parseOutp(ctx)
+        );
+
+        assertEquals("Invalid print operand", error.getDescription());
     }
 
     @Test

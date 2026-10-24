@@ -61,7 +61,7 @@ public class InstrParser {
 
         String foundToken = ctx.peek().lexeme();
         String message = "Expected an instruction, but found '" + foundToken + "'.";
-        throw ctx.error(message);
+        throw ctx.error(SyntaxErrorType.INVALID_INSTRUCTION, message);
     }
 
 
@@ -123,7 +123,7 @@ public class InstrParser {
         String foundToken = ctx.peek().lexeme();
         String message = "Expected '=' or '(' after '" + udn.lexeme()
                 + "', but found '" + foundToken + "'.";
-        throw ctx.error(message);
+        throw ctx.error(SyntaxErrorType.EXPECTED_ASSIGNMENT_OR_FUNCTION_CALL, message);
     }
 
 

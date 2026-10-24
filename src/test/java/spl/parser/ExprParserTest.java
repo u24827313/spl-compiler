@@ -410,6 +410,7 @@ class ExprParserTest {
 
         ParseException error = assertThrows(ParseException.class, () -> ExprParser.parseTerm(ctx));
 
+        assertEquals("Missing term or expression", error.getDescription());
         assertTrue(error.getMessage().contains("Expected a term"));
         assertTrue(error.getMessage().contains("')'"));
     }
@@ -423,6 +424,7 @@ class ExprParserTest {
 
         ParseException error = assertThrows(ParseException.class, () -> ExprParser.parseBool(ctx));
 
+        assertEquals("Invalid boolean expression", error.getDescription());
         assertTrue(error.getMessage().contains("Expected a boolean expression"));
         assertEquals(1, error.getLine());
         assertEquals(1, error.getColumn());

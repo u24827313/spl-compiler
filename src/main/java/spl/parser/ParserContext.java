@@ -32,7 +32,7 @@ public class ParserContext {
             Token currentToken = peek();
             String message = "Unexpected end of program while looking ahead by "
                     + offset + " token(s).";
-            throw new ParseException(message, currentToken);
+            throw new ParseException(SyntaxErrorType.UNEXPECTED_SYNTAX, message, currentToken);
         }
 
         return tokens.get(index);
@@ -47,13 +47,24 @@ public class ParserContext {
             String foundToken = peek().lexeme();
             String message = "Expected " + expectedToken + " " + context
                     + ", but found '" + foundToken + "'.";
-            throw error(message);
+            SyntaxErrorType errorType = classifyExpectedToken(type);
+            throw error(errorType, message);
         }
         return advance();
     }
 
-    public ParseException error(String message) {
-        return new ParseException(message, peek());
+    public ParseException error(SyntaxErrorType errorType, String message) {
+        return new ParseException(errorType, message, peek());
+    }
+
+    private static SyntaxErrorType classifyExpectedToken(TokenType type) {
+        return switch (type) {
+            case COLON -> SyntaxErrorType.MISSING_PROGRAM_SECTION_SEPARATOR;
+            case SEMICOLON -> SyntaxErrorType.MISSING_PUNCTUATION;
+            case THEN, ELSE -> SyntaxErrorType.MISSING_BRANCH_KEYWORD;
+            case RPAREN, RBRACE -> SyntaxErrorType.MISSING_CLOSING_DELIMITER;
+            default -> SyntaxErrorType.UNEXPECTED_SYNTAX;
+        };
     }
 
     private static String describe(TokenType type) {

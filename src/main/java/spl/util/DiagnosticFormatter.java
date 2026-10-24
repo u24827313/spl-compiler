@@ -41,12 +41,13 @@ public final class DiagnosticFormatter {
         String highlightedSourceLine = highlightSourceRange(
                 relevantSourceLine, error.getColumn(), tokenLength, coloursEnabled);
 
+        String explanation = error.getDescription() + " : " + error.getMessage();
         return formatError(
                 "Syntax error",
                 error.getLine(),
                 error.getColumn(),
                 highlightedSourceLine,
-                error.getMessage(),
+                explanation,
                 coloursEnabled
         );
     }

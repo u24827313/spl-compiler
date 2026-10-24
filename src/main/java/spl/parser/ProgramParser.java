@@ -70,7 +70,7 @@ public class ProgramParser {
             String foundToken = ctx.peek().lexeme();
             String message = "Expected a function declaration to start with 'void' or 'num', "
                     + "but found '" + foundToken + "'.";
-            throw ctx.error(message);
+            throw ctx.error(SyntaxErrorType.INVALID_FUNCTION_DECLARATION, message);
         }
 
         return node;
@@ -101,7 +101,7 @@ public class ProgramParser {
             String foundToken = ctx.peek().lexeme();
             String message = "Expected '(' or a string literal after 'print', but found '"
                     + foundToken + "'.";
-            throw ctx.error(message);
+            throw ctx.error(SyntaxErrorType.INVALID_PRINT_OPERAND, message);
         }
         return node;
     }
