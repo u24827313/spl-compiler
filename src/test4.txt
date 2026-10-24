@@ -1,0 +1,1 @@
+#i : : #i = 0 ; do { #i = add ( #i 1 ) ; } until or ( eq ( #i 3 ) larger ( #i 10 ) ) ; if and ( eq ( #i 3 ) not ( lesser ( #i 3 ) ) ) then { print "ok" ; } else { print "bad" ; } ;

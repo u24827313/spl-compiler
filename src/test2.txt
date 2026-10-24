@@ -1,0 +1,1 @@
+#a : : #a = 7 ; if larger ( #a 5 ) then { print "big" ; } else { print "small" ; } ;

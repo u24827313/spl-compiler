@@ -1,0 +1,1 @@
+#r : num #double ( #n ) { : : return ( mul ( #n 2 ) ) } void #say ( ) { : : print "hi" ; return } : #r = #double ( 21 ) ; print ( #r ) ; #say ( ) ;

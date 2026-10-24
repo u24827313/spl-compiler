@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import spl.tree.Node;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,9 +13,11 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class DonovanCallGenIntegrationTest {
     private static final long COMPILER_TIMEOUT_SECONDS = 45;
+    private static final long COMPILER_PROBE_TIMEOUT_SECONDS = 5;
     private static final long PROGRAM_TIMEOUT_SECONDS = 10;
 
     @TempDir
@@ -76,6 +79,7 @@ class DonovanCallGenIntegrationTest {
         Path executablePath = temporaryDirectory.resolve(fileName);
         Files.writeString(cppPath, translationUnit, StandardCharsets.UTF_8);
 
+        assumeTrue(cppCompilerAvailable(), "g++ is not available");
         Result compilation = run(temporaryDirectory, COMPILER_TIMEOUT_SECONDS,
                 "g++", "-std=c++17", "-Wall", "-Wextra", "-o",
                 executablePath.toString(), cppPath.toString());
@@ -84,6 +88,28 @@ class DonovanCallGenIntegrationTest {
         Result execution = run(temporaryDirectory, PROGRAM_TIMEOUT_SECONDS, executablePath.toString());
         assertEquals(0, execution.exitCode(), "Generated executable failed:\n" + execution.output());
         assertEquals(expectedOutput, execution.output());
+    }
+
+    private static boolean cppCompilerAvailable() throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder("g++", "--version");
+        processBuilder.redirectErrorStream(true);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+        Process process;
+        try {
+            process = processBuilder.start();
+        } catch (IOException unavailableCompiler) {
+            return false;
+        }
+
+        boolean completedWithinTimeout = process.waitFor(
+                COMPILER_PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        if (!completedWithinTimeout) {
+            process.destroyForcibly();
+            process.waitFor();
+            return false;
+        }
+
+        return process.exitValue() == 0;
     }
 
     private static void declareEveryUserVariable(Node node, CodeGenContext context) {

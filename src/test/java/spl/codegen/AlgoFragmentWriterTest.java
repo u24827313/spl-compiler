@@ -45,7 +45,7 @@ class AlgoFragmentWriterTest {
     }
 
     @Test
-    void writesUtf8WithAscii13LineEndingsAndNoExecutableWrapper() throws Exception {
+    void writesUtf8WithLfLineEndingsAndNoExecutableWrapper() throws Exception {
         String source = ": : print \"hello.world\" ; print ( 3 ) ; $ ";
         CodeGenTestSupport.Translation translation = CodeGenTestSupport.translate(source, "int");
         Path output = temporaryDirectory.resolve("algo.cpp");
@@ -54,9 +54,9 @@ class AlgoFragmentWriterTest {
 
         byte[] bytes = Files.readAllBytes(output);
         String written = new String(bytes, StandardCharsets.UTF_8);
-        assertTrue(written.contains("std::cout << \"hello.world\";\r"));
-        assertTrue(written.contains("std::cout << t1;\r"));
-        assertFalse(written.contains("\n"));
+        assertTrue(written.contains("std::cout << \"hello.world\";\n"));
+        assertTrue(written.contains("std::cout << t1;\n"));
+        assertFalse(written.contains("\r"));
         assertFalse(written.contains("int main"));
         assertFalse(written.contains("#include"));
         for (int i = 0; i < bytes.length; i++) {
@@ -66,9 +66,9 @@ class AlgoFragmentWriterTest {
             }
 
             boolean hasFollowingByte = i + 1 < bytes.length;
-            boolean isFollowedByAscii13 = hasFollowingByte && bytes[i + 1] == '\r';
-            assertTrue(isFollowedByAscii13,
-                    "semicolon at byte " + i + " is not followed by ASCII 13");
+            boolean isFollowedByNewline = hasFollowingByte && bytes[i + 1] == '\n';
+            assertTrue(isFollowedByNewline,
+                    "semicolon at byte " + i + " is not followed by a line break");
         }
     }
 
@@ -83,5 +83,10 @@ class AlgoFragmentWriterTest {
                 () -> AlgoFragmentWriter.write(malformedAlgo, null, "int", output));
         String existingOutput = Files.readString(output, StandardCharsets.UTF_8);
         assertEquals("preserve me", existingOutput);
+    }
+
+    @Test
+    void normalisesAnyLineEndingStyleToLf() {
+        assertEquals("a\nb\nc\n", AlgoFragmentWriter.toLfLineEndings("a\r\nb\rc\n"));
     }
 }

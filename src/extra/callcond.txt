@@ -1,0 +1,1 @@
+#i : num #limit ( ) { : : return ( 3 ) } : #i = 0 ; while lesser ( #i #limit ( ) ) do { #i = add ( #i 1 ) ; } ; print ( #i ) ; 

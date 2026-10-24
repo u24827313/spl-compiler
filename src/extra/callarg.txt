@@ -1,0 +1,1 @@
+#r : num #add3 ( #a #b #c ) { : : return ( add ( #a add ( #b #c ) ) ) } num #sq ( #n ) { : : return ( mul ( #n #n ) ) } : #r = #add3 ( #sq ( 2 ) 3 4 ) ; print ( #r ) ; 
