@@ -16,6 +16,7 @@ import spl.tree.SyntaxTree;
 import spl.tree.XmlTreeWriter;
 import spl.typeanalysis.TypeAnalyser;
 import spl.typeanalysis.TypeException;
+import spl.util.DiagnosticFormatter;
 
 /**
  * Usage: java -jar spl-compiler.jar <path-to-SPL.txt>
@@ -29,8 +30,9 @@ public class Main {
             System.exit(1);
         }
 
+        String source = null;
         try {
-            String source = Files.readString(new File(args[0]).toPath());
+            source = Files.readString(new File(args[0]).toPath());
 
             List<Token> tokens = new Lexer().tokenize(source);
             SyntaxTree tree = new Parser().parse(tokens);
@@ -50,7 +52,7 @@ public class Main {
             System.err.println("Syntax Error: " + e.getMessage());
             System.exit(1);
         } catch (Lexer.LexException e) {
-            System.err.println("Lexical Error: " + e.getMessage());
+            System.err.println(DiagnosticFormatter.formatLexicalError(e, source));
             System.exit(1);
         } catch (SemanticException e) {
             System.err.println("Semantic Error: " + e.getMessage());

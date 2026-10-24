@@ -77,9 +77,9 @@ class LexerIntegrationTest {
 
         Lexer.LexException ex = assertThrows(Lexer.LexException.class,
                 () -> lexer.tokenize(source));
-        assertTrue(ex.getMessage().contains("line"));
-        assertTrue(ex.getMessage().contains("column 1"));
-        assertTrue(ex.getMessage().contains("'@'"));
+        assertEquals("Unrecognized character '@'.", ex.getMessage());
+        assertEquals(1, ex.getLine());
+        assertEquals(1, ex.getColumn());
     }
 
     @Test

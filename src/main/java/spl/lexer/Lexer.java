@@ -75,11 +75,8 @@ public class Lexer
             // If no match, it cannot be processed
             if (matchedToken == null) 
             {
-                String character = Character.isISOControl(current)
-                    ? String.format("U+%04X", (int) current)
-                    : "'" + current + "'";
-                throw new LexException("Unrecognized character " + character
-                    + " at line " + line + ", column " + column);
+                String characterDescription = describeCharacter(current);
+                throw new LexException("Unrecognized character " + characterDescription + ".", line, column);
             }
 
             tokens.add(matchedToken);
@@ -94,8 +91,31 @@ public class Lexer
         return tokens;
     }
 
-    public static class LexException extends RuntimeException 
-    {
-        public LexException(String message) { super(message); }
+    private static String describeCharacter(char character) {
+        boolean isControlCharacter = Character.isISOControl(character);
+        if (isControlCharacter) {
+            return String.format("U+%04X", (int) character);
+        }
+
+        return "'" + character + "'";
+    }
+
+    public static class LexException extends RuntimeException {
+        private final int line;
+        private final int column;
+
+        public LexException(String message, int line, int column) {
+            super(message);
+            this.line = line;
+            this.column = column;
+        }
+
+        public int getLine() {
+            return line;
+        }
+
+        public int getColumn() {
+            return column;
+        }
     }
 }

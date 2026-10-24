@@ -16,6 +16,13 @@
     </properties>
 
     <dependencies>
+        <!-- ANSI styling for command-line diagnostics. -->
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
         <!-- JUnit 5 for unit-testing each lexer recognizer / parser rule independently -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
